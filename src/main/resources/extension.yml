@@ -1,0 +1,6 @@
+name: ArenaRegen
+version: @VERSION@
+main: me.realized.de.arenaregen.ArenaRegen
+authors: [Realized]
+description: Create automatically resetting arenas!
+website: not released
