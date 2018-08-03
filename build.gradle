@@ -1,0 +1,56 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+group 'me.realized.de'
+version '1.0.0-SNAPSHOT'
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include '**/*.yml'
+        filter(ReplaceTokens, tokens: [VERSION: project.version])
+    }
+}
+
+repositories {
+    mavenCentral()
+
+    maven {
+        name 'spigot-repo'
+        url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots'
+    }
+
+    maven {
+        name 'bungeecord-repo'
+        url 'https://oss.sonatype.org/content/repositories/snapshots'
+    }
+
+    maven {
+        name 'jitpack-repo'
+        url 'https://jitpack.io'
+    }
+
+    maven {
+        name 'sk89q-repo'
+        url 'http://maven.sk89q.com/repo/'
+    }
+
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+dependencies {
+    compile 'org.projectlombok:lombok:1.16.20'
+    compile 'org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT'
+    compile 'com.github.RealizedMC.Duels:duels-api:v3.1.0'
+    compile 'com.sk89q:worldguard:6.1.1-SNAPSHOT'
+    compile name: 'spigot-1.7.10'
+    compile name: 'spigot-1.12.2'
+    compile name: 'spigot-1.13'
+}
+
+jar {
+    archiveName = archiveName.replace("DE-", "")
+}
