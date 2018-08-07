@@ -1,35 +1,29 @@
 package me.realized.de.arenaregen;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import lombok.Getter;
+import me.realized.de.arenaregen.util.BlockInfo;
 import me.realized.de.arenaregen.util.Position;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 
 public class BlockChange {
 
     @Getter
-    private final Set<Position> spaces = new HashSet<>();
+    private final List<Position> spaces = new ArrayList<>();
     @Getter
-    private final Map<Location, Block> places = new HashMap<>();
+    private final Map<Position, BlockInfo> changes = new HashMap<>();
 
-    public BlockChange() {}
+    public void setSpace(final Position position) {
+        spaces.add(position);
+    }
 
-    private class BlockData {
-
-        @Getter
-        private final Material type;
-        @Getter
-        private final byte data;
-
-        @SuppressWarnings("deprecation")
-        public BlockData(final Block block) {
-            this.type = block.getType();
-            this.data = block.getData();
+    public void setModified(final Position position, final BlockInfo info) {
+        if (changes.get(position) != null) {
+            return;
         }
+
+        changes.put(position, info);
     }
 }

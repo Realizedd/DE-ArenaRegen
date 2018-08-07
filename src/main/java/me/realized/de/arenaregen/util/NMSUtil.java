@@ -2,11 +2,9 @@ package me.realized.de.arenaregen.util;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.util.Collection;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 
 public final class NMSUtil {
 
@@ -78,10 +76,6 @@ public final class NMSUtil {
         }
 
         return true;
-    }
-
-    public static void update(final Player player, final Collection<Chunk> chunks) {
-        chunks.forEach(chunk -> player.getWorld().refreshChunk(chunk.getX(), chunk.getZ()));
     }
 
     private NMSUtil() {}

@@ -1,14 +1,17 @@
 package me.realized.de.arenaregen;
 
 import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import me.realized.de.arenaregen.util.BlockInfo;
 import me.realized.de.arenaregen.util.NMSUtil;
 import me.realized.de.arenaregen.util.Position;
+import me.realized.duels.api.arena.Arena;
 import me.realized.duels.api.arena.ArenaManager;
 import me.realized.duels.api.command.SubCommand;
 import me.realized.duels.api.event.match.MatchEndEvent;
@@ -28,8 +31,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockFromToEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
 
+// TODO: 08/08/2018 Clear dropped items in min/max zone!
 public class ArenaRegen extends DuelsExtension implements Listener {
 
     private WorldGuardPlugin worldGuard;
@@ -53,7 +56,7 @@ public class ArenaRegen extends DuelsExtension implements Listener {
                     chunks.add(blockLoc.getChunk());
                 }
 
-                NMSUtil.update(player, chunks);
+                update(chunks);
                 player.sendMessage("done!");
             }
         });
@@ -94,31 +97,55 @@ public class ArenaRegen extends DuelsExtension implements Listener {
                     final Block block = Bukkit.getWorlds().get(0).getBlockAt(x, y, z);
                     chunks.add(block.getChunk());
 
-                    if (block.getType() != Material.AIR) {
+                    if (!block.getType().name().contains("AIR")) {
                         continue;
                     }
 
-                    change.getSpaces().add(new Position(x, y, z));
+                    change.setSpace(new Position(block));
+                    System.out.println("Added space " + block.getLocation());
                 }
             }
         }
 
-        update(chunks, event.getPlayers());
+        update(chunks);
+    }
+
+    private void handleChange(final BlockChange change, final Block block) {
+        if (change == null) {
+            return;
+        }
+
+        change.setModified(new Position(block), new BlockInfo(block));
+    }
+
+    private BlockChange get(final Player player) {
+        final Arena arena = arenaManager.get(player);
+
+        if (arena == null) {
+            return null;
+        }
+
+        return arena.getMatch() != null ? changes.get(arena.getMatch()) : null;
+    }
+
+    private BlockChange get(final Position position) {
+        return changes.values().stream().filter(change -> region.contains(new Vector(position.getX(), position.getY(), position.getZ()))).findFirst().orElse(null);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void on(final BlockBreakEvent event) {
-
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void on(final BlockPlaceEvent event) {
-
+        handleChange(get(event.getPlayer()), event.getBlock());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void on(final BlockFromToEvent event) {
+        final Block toBlock = event.getToBlock();
 
+        if (toBlock.isLiquid()) {
+            return;
+        }
+
+        handleChange(get(new Position(toBlock)), toBlock);
     }
 
     @EventHandler
@@ -134,15 +161,17 @@ public class ArenaRegen extends DuelsExtension implements Listener {
         change.getSpaces().forEach(position -> {
             final Block block = world.getBlockAt(position.getX(), position.getY(), position.getZ());
 
-            if (block.getType() != Material.AIR) {
+            if (!block.getType().name().contains("AIR")) {
                 NMSUtil.setBlockFast(block, Material.AIR, 0);
+                System.out.println("Setting air " + block.getLocation());
             }
         });
+        // TODO: 08/08/2018 No lighting updates for AIR & Check if block is affected by lighting before calling c!
+        change.getChanges()
+            .forEach((position, info) -> NMSUtil.setBlockFast(world.getBlockAt(position.getX(), position.getY(), position.getZ()), info.getType(), info.getData()));
     }
 
-    private void update(final Set<Chunk> chunks, final Player... players) {
-        for (final Player player : players) {
-            NMSUtil.update(player, chunks);
-        }
+    private void update(final Set<Chunk> chunks) {
+        chunks.forEach(chunk -> chunk.getWorld().refreshChunk(chunk.getX(), chunk.getZ()));
     }
 }

@@ -2,16 +2,19 @@ package me.realized.de.arenaregen.util;
 
 import java.util.Objects;
 import lombok.Getter;
+import org.bukkit.Location;
+import org.bukkit.block.Block;
 
 public class Position {
 
     @Getter
     private final int x, y, z;
 
-    public Position(final int x, final int y, final int z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    public Position(final Block block) {
+        final Location location = block.getLocation();
+        this.x = location.getBlockX();
+        this.y = location.getBlockY();
+        this.z = location.getBlockZ();
     }
 
     @Override
