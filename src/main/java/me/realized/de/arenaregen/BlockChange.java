@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
+import me.realized.de.arenaregen.util.Position;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -12,7 +13,7 @@ import org.bukkit.block.Block;
 public class BlockChange {
 
     @Getter
-    private final Set<Location> spaces = new HashSet<>();
+    private final Set<Position> spaces = new HashSet<>();
     @Getter
     private final Map<Location, Block> places = new HashMap<>();
 

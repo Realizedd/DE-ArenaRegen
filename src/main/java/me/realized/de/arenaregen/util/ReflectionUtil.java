@@ -55,4 +55,11 @@ public final class ReflectionUtil {
         }
     }
 
+    public static Object getEnumConstant(final Class<?> clazz, final int index) {
+        try {
+            return clazz.getEnumConstants()[index];
+        } catch (Throwable throwable) {
+            return null;
+        }
+    }
 }
