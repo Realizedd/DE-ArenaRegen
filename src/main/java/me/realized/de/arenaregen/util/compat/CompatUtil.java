@@ -1,5 +1,6 @@
-package me.realized.de.arenaregen.util;
+package me.realized.de.arenaregen.util.compat;
 
+import me.realized.de.arenaregen.util.NumberUtil;
 import org.bukkit.Bukkit;
 
 public final class CompatUtil {

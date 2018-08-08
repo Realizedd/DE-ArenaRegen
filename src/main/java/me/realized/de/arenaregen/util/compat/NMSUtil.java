@@ -1,10 +1,13 @@
-package me.realized.de.arenaregen.util;
+package me.realized.de.arenaregen.util.compat;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import me.realized.de.arenaregen.util.ReflectionUtil;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 
 public final class NMSUtil {
 
@@ -57,6 +60,11 @@ public final class NMSUtil {
 
             if (CompatUtil.isPre1_8()) {
                 SET_BLOCK_7.invoke(chunkHandle, x & 0x0F, y, z & 0x0F, nmsBlock, data);
+
+                if (material.name().contains("AIR") || !canAffectLighting(chunk.getWorld(), x, y, z)) {
+                    return true;
+                }
+
                 C_17.invoke(GET_HANDLE_WORLD.invoke(chunk.getWorld()), SKY_BLOCK_ENUM, x, y, z);
             } else {
                 final Object blockPos = BLOCK_POS_CONSTRUCTOR.newInstance(x, y, z);
@@ -68,6 +76,10 @@ public final class NMSUtil {
                     SET_BLOCK.invoke(chunkHandle, blockPos, GET_BLOCK_DATA.invoke(nmsBlock), true);
                 }
 
+                if (material.name().contains("AIR") || !canAffectLighting(chunk.getWorld(), x, y, z)) {
+                    return true;
+                }
+
                 C.invoke(GET_HANDLE_WORLD.invoke(chunk.getWorld()), SKY_BLOCK_ENUM, blockPos);
             }
         } catch (Throwable ex) {
@@ -76,6 +88,23 @@ public final class NMSUtil {
         }
 
         return true;
+    }
+
+    private static boolean canAffectLighting(final World world, final int x, final int y, final int z) {
+        final Block base = world.getBlockAt(x, y, z);
+        final Block east = base.getRelative(BlockFace.EAST);
+        final Block west = base.getRelative(BlockFace.WEST);
+        final Block south = base.getRelative(BlockFace.SOUTH);
+        final Block north = base.getRelative(BlockFace.NORTH);
+        final Block up = base.getRelative(BlockFace.UP);
+        final Block down = base.getRelative(BlockFace.DOWN);
+
+        return east.getType().isTransparent()
+            || west.getType().isTransparent()
+            || up.getType().isTransparent()
+            || down.getType().isTransparent()
+            || south.getType().isTransparent()
+            || north.getType().isTransparent();
     }
 
     private NMSUtil() {}

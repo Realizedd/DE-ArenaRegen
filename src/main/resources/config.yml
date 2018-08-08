@@ -1,0 +1,14 @@
+# Allow breaking blocks in the regen arena that is not placed by a player in match.
+# default: false
+allow-arena-block-break: false
+
+# Prevent blocks from burning.
+# default: true
+prevent-block-burn: true
+
+# Prevents blocks from melting. (snow, ice)
+prevent-block-melt: true
+
+# Remove dropped items in the regen arena when the match ends.
+# default: true
+remove-dropped-items: true

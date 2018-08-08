@@ -1,28 +1,24 @@
 package me.realized.de.arenaregen;
 
 import com.sk89q.worldedit.BlockVector;
-import com.sk89q.worldedit.Vector;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import me.realized.de.arenaregen.util.BlockInfo;
-import me.realized.de.arenaregen.util.NMSUtil;
-import me.realized.de.arenaregen.util.Position;
-import me.realized.duels.api.arena.Arena;
-import me.realized.duels.api.arena.ArenaManager;
+import java.util.concurrent.TimeUnit;
+import lombok.Getter;
+import me.realized.de.arenaregen.command.ArenaregenCommand;
+import me.realized.de.arenaregen.util.compat.NMSUtil;
+import me.realized.de.arenaregen.zone.ResetZone;
+import me.realized.de.arenaregen.zone.ZoneManager;
 import me.realized.duels.api.command.SubCommand;
 import me.realized.duels.api.event.match.MatchEndEvent;
-import me.realized.duels.api.event.match.MatchStartEvent;
 import me.realized.duels.api.extension.DuelsExtension;
-import me.realized.duels.api.match.Match;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -30,16 +26,20 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockFadeEvent;
+import org.bukkit.event.block.BlockIgniteEvent;
+import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
 
-// TODO: 08/08/2018 Clear dropped items in min/max zone!
-public class ArenaRegen extends DuelsExtension implements Listener {
+public class ArenaRegen extends DuelsExtension {
 
     private WorldGuardPlugin worldGuard;
     private ProtectedCuboidRegion region;
-    private ArenaManager arenaManager;
 
-    private final Map<Match, BlockChange> changes = new HashMap<>();
+    @Getter
+    private ZoneManager zoneManager;
+
+    private ResetZone zone;
 
     @Override
     public void onEnable() {
@@ -68,13 +68,20 @@ public class ArenaRegen extends DuelsExtension implements Listener {
             return;
         }
 
-        this.arenaManager = api.getArenaManager();
-        api.registerListener(this);
+        api.registerSubCommand("duels", new ArenaregenCommand(this, api));
+
+        final BlockVector min = region.getMinimumPoint();
+        final BlockVector max = region.getMaximumPoint();
+        final Location first = new Location(Bukkit.getWorlds().get(0), min.getBlockX(), min.getBlockY(), min.getBlockZ());
+        final Location second = new Location(Bukkit.getWorlds().get(0), max.getBlockX(), max.getBlockY(), max.getBlockZ());
+        zone = new ResetZone("boi", first, second);
+        api.registerListener(this.zoneManager = new ZoneManager(this));
+        api.registerListener(new RegenListener());
     }
 
     @Override
     public void onDisable() {
-        changes.clear();
+
     }
 
     @Override
@@ -82,96 +89,79 @@ public class ArenaRegen extends DuelsExtension implements Listener {
         return "3.1.2";
     }
 
-    @EventHandler
-    public void on(final MatchStartEvent event) {
-        final BlockChange change = new BlockChange();
-        changes.put(event.getMatch(), change);
-
-        final Set<Chunk> chunks = new HashSet<>();
-        final BlockVector min = region.getMinimumPoint();
-        final BlockVector max = region.getMaximumPoint();
-
-        for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
-            for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
-                for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
-                    final Block block = Bukkit.getWorlds().get(0).getBlockAt(x, y, z);
-                    chunks.add(block.getChunk());
-
-                    if (!block.getType().name().contains("AIR")) {
-                        continue;
-                    }
-
-                    change.setSpace(new Position(block));
-                    System.out.println("Added space " + block.getLocation());
-                }
-            }
-        }
-
-        update(chunks);
-    }
-
-    private void handleChange(final BlockChange change, final Block block) {
-        if (change == null) {
-            return;
-        }
-
-        change.setModified(new Position(block), new BlockInfo(block));
-    }
-
-    private BlockChange get(final Player player) {
-        final Arena arena = arenaManager.get(player);
-
-        if (arena == null) {
-            return null;
-        }
-
-        return arena.getMatch() != null ? changes.get(arena.getMatch()) : null;
-    }
-
-    private BlockChange get(final Position position) {
-        return changes.values().stream().filter(change -> region.contains(new Vector(position.getX(), position.getY(), position.getZ()))).findFirst().orElse(null);
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void on(final BlockBreakEvent event) {
-        handleChange(get(event.getPlayer()), event.getBlock());
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void on(final BlockFromToEvent event) {
-        final Block toBlock = event.getToBlock();
-
-        if (toBlock.isLiquid()) {
-            return;
-        }
-
-        handleChange(get(new Position(toBlock)), toBlock);
-    }
-
-    @EventHandler
-    public void on(final MatchEndEvent event) {
-        final BlockChange change = changes.remove(event.getMatch());
-
-        if (change == null) {
-            return;
-        }
-
-        final World world = Bukkit.getWorlds().get(0);
-
-        change.getSpaces().forEach(position -> {
-            final Block block = world.getBlockAt(position.getX(), position.getY(), position.getZ());
-
-            if (!block.getType().name().contains("AIR")) {
-                NMSUtil.setBlockFast(block, Material.AIR, 0);
-                System.out.println("Setting air " + block.getLocation());
-            }
-        });
-        // TODO: 08/08/2018 No lighting updates for AIR & Check if block is affected by lighting before calling c!
-        change.getChanges()
-            .forEach((position, info) -> NMSUtil.setBlockFast(world.getBlockAt(position.getX(), position.getY(), position.getZ()), info.getType(), info.getData()));
-    }
-
     private void update(final Set<Chunk> chunks) {
         chunks.forEach(chunk -> chunk.getWorld().refreshChunk(chunk.getX(), chunk.getZ()));
+    }
+
+    private class RegenListener implements Listener {
+
+        private boolean allowArenaBlockBreak = false;
+
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        public void on(final BlockBreakEvent event) {
+            final Block block = event.getBlock();
+
+            if (allowArenaBlockBreak || !zone.isCached(block)) {
+                return;
+            }
+
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(ChatColor.RED + "Can't break the arena!");
+        }
+
+        private boolean preventBlockMelt = true;
+
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        public void on(final BlockFadeEvent event) {
+            final Block block = event.getBlock();
+
+            if (!zone.contains(block)) {
+                return;
+            }
+
+            final Material changedType = event.getNewState().getType();
+
+            if (!(preventBlockMelt && (changedType == Material.AIR || changedType.name().contains("WATER")))) {
+                return;
+            }
+
+            event.setCancelled(true);
+        }
+
+        private boolean preventBlockBurn = true;
+
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        public void on(final BlockBurnEvent event) {
+            final Block block = event.getBlock();
+
+            if (!preventBlockBurn || !zone.contains(block)) {
+                return;
+            }
+
+            event.setCancelled(true);
+        }
+
+        private boolean preventFireSpread = true;
+
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        public void on(final BlockIgniteEvent event) {
+            if (!preventFireSpread || event.getCause() != IgniteCause.SPREAD || !zone.contains(event.getBlock())) {
+                return;
+            }
+
+            event.setCancelled(true);
+        }
+
+        @EventHandler
+        public void on(final MatchEndEvent event) {
+            if (!event.getMatch().getArena().getName().equals(zone.getName())) {
+                return;
+            }
+
+            final long start = System.nanoTime();
+            System.out.println("Resetting...");
+            zone.reset();
+            System.out.println("Done. Took " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS) + "ms");
+        }
     }
 }
