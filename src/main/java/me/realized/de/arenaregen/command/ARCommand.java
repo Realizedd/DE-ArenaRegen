@@ -9,8 +9,6 @@ import org.bukkit.command.CommandSender;
 
 public abstract class ARCommand {
 
-    protected final ArenaRegen extension;
-    protected final Duels api;
     protected final ArenaManager arenaManager;
     protected final ResetZoneManager zoneManager;
 
@@ -26,8 +24,6 @@ public abstract class ARCommand {
     private final boolean playerOnly;
 
     protected ARCommand(final ArenaRegen extension, final Duels api, final String name, final String usage, final String description, final int length, final boolean playerOnly) {
-        this.extension = extension;
-        this.api = api;
         this.arenaManager = api.getArenaManager();
         this.zoneManager = extension.getZoneManager();
         this.name = name;

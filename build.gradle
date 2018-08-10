@@ -31,11 +31,6 @@ repositories {
         url 'https://jitpack.io'
     }
 
-    maven {
-        name 'sk89q-repo'
-        url 'http://maven.sk89q.com/repo/'
-    }
-
     flatDir {
         dirs 'libs'
     }
@@ -45,7 +40,6 @@ dependencies {
     compile 'org.projectlombok:lombok:1.16.20'
     compile 'org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT'
     compile 'com.github.RealizedMC.Duels:duels-api:v3.1.2'
-    compile 'com.sk89q:worldguard:6.1.1-SNAPSHOT'
     compile name: 'spigot-1.7.10'
     compile name: 'spigot-1.12.2'
     compile name: 'spigot-1.13'

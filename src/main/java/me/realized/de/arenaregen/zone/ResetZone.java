@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import lombok.Getter;
@@ -20,7 +21,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -42,7 +42,7 @@ public class ResetZone {
     private final Map<Position, BlockInfo> blocks = new HashMap<>();
     private final File file;
 
-    public ResetZone(final ArenaRegen extension, final Duels api, final String name, final File folder, final Location first, final Location second) {
+    ResetZone(final ArenaRegen extension, final Duels api, final String name, final File folder, final Location first, final Location second) {
         this.api = api;
         this.config = extension.getConfiguration();
         this.name = name;
@@ -61,7 +61,7 @@ public class ResetZone {
         );
     }
 
-    public ResetZone(final ArenaRegen extension, final Duels api, final String name, final File file) {
+    ResetZone(final ArenaRegen extension, final Duels api, final String name, final File file) {
         this.api = api;
         this.config = extension.getConfiguration();
 
@@ -94,7 +94,7 @@ public class ResetZone {
         });
     }
 
-    public void save() throws IOException {
+    void save() throws IOException {
         if (!file.exists()) {
             file.createNewFile();
         }
@@ -111,7 +111,7 @@ public class ResetZone {
         config.save(file);
     }
 
-    public void delete() {
+    void delete() {
         blocks.clear();
         file.delete();
     }
@@ -123,7 +123,7 @@ public class ResetZone {
     void loadBlocks() {
         // Only store non-air blocks
         doForAll(block -> {
-            if (block.getType().name().contains("AIR")) {
+            if (block.getType() == Material.AIR) {
                 return;
             }
 
@@ -141,27 +141,29 @@ public class ResetZone {
         }
     }
 
-    public void reset() {
-        final Set<Chunk> chunks = new HashSet<>();
+    @SuppressWarnings("deprecation")
+    void reset() {
+        final Set<ChunkLoc> chunks = new HashSet<>();
+
         doForAll(block -> {
             final BlockInfo info = blocks.get(new Position(block));
 
-            if (info == null || info.matches(block)) {
+            if (info == null) {
                 // If no stored information is available (= air) but block is not air, set to air
-                if (!block.getType().name().contains("AIR")) {
+                if (block.getType() != Material.AIR) {
                     NMSUtil.setBlockFast(block, Material.AIR, 0);
+                    chunks.add(new ChunkLoc(block.getChunk()));
                 }
 
                 return;
+            } else if (info.matches(block)) {
+                return;
             }
 
-            chunks.add(block.getChunk());
             NMSUtil.setBlockFast(block, info.getType(), info.getData());
+            chunks.add(new ChunkLoc(block.getChunk()));
         });
-        api.doSyncAfter(() -> {
-            doForAll(NMSUtil::updateLighting);
-            chunks.forEach(chunk -> chunk.getWorld().refreshChunk(chunk.getX(), chunk.getZ()));
-        }, 1L);
+        chunks.forEach(chunkLoc -> min.getWorld().refreshChunk(chunkLoc.x, chunkLoc.z));
 
         if (!config.isRemoveDroppedItems()) {
             return;
@@ -170,23 +172,38 @@ public class ResetZone {
         min.getWorld().getEntitiesByClass(Item.class).stream().filter(item -> contains(item.getLocation())).forEach(Entity::remove);
     }
 
-    public boolean contains(final Location location) {
+    private boolean contains(final Location location) {
         return min.getWorld().equals(location.getWorld())
             && min.getBlockX() <= location.getBlockX() && location.getBlockX() <= max.getBlockX()
             && min.getBlockY() <= location.getBlockY() && location.getBlockY() <= max.getBlockY()
             && min.getBlockZ() <= location.getBlockZ() && location.getBlockZ() <= max.getBlockZ();
     }
 
-    public boolean contains(final BlockState state) {
-        return contains(state.getLocation());
-    }
-
-    public boolean contains(final Block block) {
-        return contains(block.getState());
-    }
-
     @SuppressWarnings("deprecation")
-    public boolean isCached(final Block block) {
-        return contains(block) && blocks.containsKey(new Position(block));
+    boolean isCached(final Block block) {
+        return contains(block.getLocation()) && blocks.containsKey(new Position(block));
+    }
+
+    private class ChunkLoc {
+
+        private final int x, z;
+
+        ChunkLoc(final Chunk chunk) {
+            this.x = chunk.getX();
+            this.z = chunk.getZ();
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false; }
+            final ChunkLoc chunkLoc = (ChunkLoc) o;
+            return x == chunkLoc.x && z == chunkLoc.z;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(x, z);
+        }
     }
 }
