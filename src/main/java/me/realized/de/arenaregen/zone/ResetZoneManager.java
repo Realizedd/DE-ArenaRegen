@@ -28,6 +28,7 @@ import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockFadeEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
+import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
@@ -204,6 +205,15 @@ public class ResetZoneManager {
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
         public void on(final BlockIgniteEvent event) {
             if (!config.isPreventFireSpread() || event.getCause() != IgniteCause.SPREAD || zones.values().stream().noneMatch(zone -> zone.isCached(event.getBlock()))) {
+                return;
+            }
+
+            event.setCancelled(true);
+        }
+
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        public void on(final LeavesDecayEvent event) {
+            if (!config.isPreventLeafDecay() || zones.values().stream().noneMatch(zone -> zone.isCached(event.getBlock()))) {
                 return;
             }
 
