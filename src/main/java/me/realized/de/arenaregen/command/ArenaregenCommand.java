@@ -5,6 +5,8 @@ import java.util.Map;
 import me.realized.de.arenaregen.ArenaRegen;
 import me.realized.de.arenaregen.Lang;
 import me.realized.de.arenaregen.command.commands.CreateCommand;
+import me.realized.de.arenaregen.command.commands.DeleteCommand;
+import me.realized.de.arenaregen.command.commands.ListCommand;
 import me.realized.duels.api.Duels;
 import me.realized.duels.api.command.SubCommand;
 import org.bukkit.command.CommandSender;
@@ -17,7 +19,9 @@ public class ArenaregenCommand extends SubCommand {
     public ArenaregenCommand(final ArenaRegen extension, final Duels api) {
         super("arenaregen", null, null, null, false, 1, "ar");
         register(
-            new CreateCommand(extension, api)
+            new CreateCommand(extension, api),
+            new DeleteCommand(extension, api),
+            new ListCommand(extension, api)
         );
     }
 

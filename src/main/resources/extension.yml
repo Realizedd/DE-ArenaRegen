@@ -4,3 +4,4 @@ main: me.realized.de.arenaregen.ArenaRegen
 authors: [Realized]
 description: Create automatically resetting arenas!
 website: not released
+api-version: 3.1.2

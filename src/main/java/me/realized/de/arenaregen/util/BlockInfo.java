@@ -12,9 +12,22 @@ public class BlockInfo {
     @Getter
     private final byte data;
 
+    public BlockInfo(final Material type, final byte data) {
+        this.type = type;
+        this.data = data;
+    }
+
     @SuppressWarnings("deprecation")
     public BlockInfo(final BlockState state) {
-        this.type = state.getType();
-        this.data = state.getRawData();
+        this(state.getType(), state.getRawData());
+    }
+
+    public boolean matches(final Block block) {
+        return block.getType() == type && block.getData() == data;
+    }
+
+    @Override
+    public String toString() {
+        return type + ";" + data;
     }
 }

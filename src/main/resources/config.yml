@@ -1,14 +1,24 @@
-# Allow breaking blocks in the regen arena that is not placed by a player in match.
+# Item to use as a cube selecting tool.
+# default: IRON_HOE
+selecting-tool: IRON_HOE
+
+# Allow breaking blocks in the reset zone that is not placed by a player in match.
 # default: false
 allow-arena-block-break: false
 
-# Prevent blocks from burning.
+# Remove dropped items in the reset zone when the match ends.
+# default: true
+remove-dropped-items: true
+
+# Prevent blocks in the reset zone from burning.
 # default: true
 prevent-block-burn: true
 
-# Prevents blocks from melting. (snow, ice)
+# Prevents blocks in the reset zone from melting. (snow, ice)
 prevent-block-melt: true
 
-# Remove dropped items in the regen arena when the match ends.
-# default: true
-remove-dropped-items: true
+# Prevents fire in the reset zone from spreading.
+prevent-fire-spread: true
+
+# Prevents tree leaves in the reset zone from decaying.
+prevent-leaf-decay: true

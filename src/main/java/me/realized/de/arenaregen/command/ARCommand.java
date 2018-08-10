@@ -2,7 +2,7 @@ package me.realized.de.arenaregen.command;
 
 import lombok.Getter;
 import me.realized.de.arenaregen.ArenaRegen;
-import me.realized.de.arenaregen.zone.ZoneManager;
+import me.realized.de.arenaregen.zone.ResetZoneManager;
 import me.realized.duels.api.Duels;
 import me.realized.duels.api.arena.ArenaManager;
 import org.bukkit.command.CommandSender;
@@ -12,7 +12,7 @@ public abstract class ARCommand {
     protected final ArenaRegen extension;
     protected final Duels api;
     protected final ArenaManager arenaManager;
-    protected final ZoneManager zoneManager;
+    protected final ResetZoneManager zoneManager;
 
     @Getter
     private final String name;

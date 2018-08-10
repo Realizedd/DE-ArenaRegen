@@ -49,23 +49,38 @@ public final class NMSUtil {
         }
     }
 
-    public static boolean setBlockFast(final Block block, final Material material, final int data) {
-        return setBlockFast(block.getChunk(), block.getX(), block.getY(), block.getZ(), material, data);
+    public static void updateLighting(final Block block) {
+        final int x = block.getX();
+        final int y = block.getY();
+        final int z = block.getZ();
+
+        if (block.getType().name().contains("AIR") || !canAffectLighting(block.getWorld(), x, y, z)) {
+            return;
+        }
+
+        try {
+            if (CompatUtil.isPre1_8()) {
+                C_17.invoke(GET_HANDLE_WORLD.invoke(block.getWorld()), SKY_BLOCK_ENUM, x, y, z);
+            } else {
+                C.invoke(GET_HANDLE_WORLD.invoke(block.getWorld()), SKY_BLOCK_ENUM, BLOCK_POS_CONSTRUCTOR.newInstance(x, y, z));
+            }
+        } catch (Throwable ex) {
+            ex.printStackTrace();
+        }
     }
 
-    public static boolean setBlockFast(final Chunk chunk, final int x, final int y, final int z, final Material material, final int data) {
+    public static void setBlockFast(final Block block, final Material material, final int data) {
+        final Chunk chunk = block.getChunk();
+        final int x = block.getX();
+        final int y = block.getY();
+        final int z = block.getZ();
+
         try {
             final Object chunkHandle = GET_HANDLE.invoke(chunk);
             Object nmsBlock = GET_BLOCK.invoke(null, material);
 
             if (CompatUtil.isPre1_8()) {
                 SET_BLOCK_7.invoke(chunkHandle, x & 0x0F, y, z & 0x0F, nmsBlock, data);
-
-                if (material.name().contains("AIR") || !canAffectLighting(chunk.getWorld(), x, y, z)) {
-                    return true;
-                }
-
-                C_17.invoke(GET_HANDLE_WORLD.invoke(chunk.getWorld()), SKY_BLOCK_ENUM, x, y, z);
             } else {
                 final Object blockPos = BLOCK_POS_CONSTRUCTOR.newInstance(x, y, z);
 
@@ -75,20 +90,13 @@ public final class NMSUtil {
                 } else {
                     SET_BLOCK.invoke(chunkHandle, blockPos, GET_BLOCK_DATA.invoke(nmsBlock), true);
                 }
-
-                if (material.name().contains("AIR") || !canAffectLighting(chunk.getWorld(), x, y, z)) {
-                    return true;
-                }
-
-                C.invoke(GET_HANDLE_WORLD.invoke(chunk.getWorld()), SKY_BLOCK_ENUM, blockPos);
             }
         } catch (Throwable ex) {
             ex.printStackTrace();
-            return false;
         }
-
-        return true;
     }
+
+
 
     private static boolean canAffectLighting(final World world, final int x, final int y, final int z) {
         final Block base = world.getBlockAt(x, y, z);
