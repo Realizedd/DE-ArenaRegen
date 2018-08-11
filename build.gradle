@@ -30,19 +30,12 @@ repositories {
         name 'jitpack-repo'
         url 'https://jitpack.io'
     }
-
-    flatDir {
-        dirs 'libs'
-    }
 }
 
 dependencies {
     compile 'org.projectlombok:lombok:1.16.20'
     compile 'org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT'
     compile 'com.github.RealizedMC.Duels:duels-api:v3.1.2'
-    compile name: 'spigot-1.7.10'
-    compile name: 'spigot-1.12.2'
-    compile name: 'spigot-1.13'
 }
 
 jar {

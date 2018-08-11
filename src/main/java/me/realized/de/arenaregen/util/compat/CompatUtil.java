@@ -3,7 +3,7 @@ package me.realized.de.arenaregen.util.compat;
 import me.realized.de.arenaregen.util.NumberUtil;
 import org.bukkit.Bukkit;
 
-public final class CompatUtil {
+final class CompatUtil {
 
     private static final int SUB_VERSION;
 
@@ -14,11 +14,11 @@ public final class CompatUtil {
 
     private CompatUtil() {}
 
-    public static boolean isPre1_8() {
+    static boolean isPre1_8() {
         return SUB_VERSION < 8;
     }
 
-    public static boolean isPre1_13() {
+    static boolean isPre1_13() {
         return SUB_VERSION < 13;
     }
 }
