@@ -15,6 +15,14 @@ public final class ReflectionUtil {
 
     private ReflectionUtil() {}
 
+    public static Class<?> getClassUnsafe(final String name) {
+        try {
+            return Class.forName(name);
+        } catch (ClassNotFoundException ex) {
+            return null;
+        }
+    }
+
     public static Class<?> getNMSClass(final String name) {
         try {
             return Class.forName("net.minecraft.server." + VERSION + "." + name);

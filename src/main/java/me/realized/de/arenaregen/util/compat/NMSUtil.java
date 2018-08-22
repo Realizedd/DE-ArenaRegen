@@ -16,6 +16,8 @@ public final class NMSUtil {
     private static Method WORLD_GET_HANDLE;
     private static Method WORLD_C_17;
     private static Method WORLD_C;
+    private static Method WORLD_UPDATE_LIGHTING_17;
+    private static Method WORLD_UPDATE_LIGHTING;
     private static Method CHUNK_GET_HANDLE;
     private static Method BLOCK_FROM_LEGACY_DATA;
     private static Method BLOCK_GET_DATA;
@@ -31,8 +33,14 @@ public final class NMSUtil {
             WORLD_GET_HANDLE = ReflectionUtil.getMethod(ReflectionUtil.getCBClass("CraftWorld"), "getHandle");
             final Class<?> WORLD = ReflectionUtil.getNMSClass("World");
             final Class<?> ENUM_SKY_BLOCK = ReflectionUtil.getNMSClass("EnumSkyBlock");
-            WORLD_C = ReflectionUtil.getMethod(WORLD, "c", ENUM_SKY_BLOCK, BLOCK_POS);
             WORLD_C_17 = ReflectionUtil.getMethod(WORLD, "c", ENUM_SKY_BLOCK, Integer.TYPE, Integer.TYPE, Integer.TYPE);
+            WORLD_C = ReflectionUtil.getMethod(WORLD, "c", ENUM_SKY_BLOCK, BLOCK_POS);
+
+            if (CompatUtil.isPaperSpigot()) {
+                WORLD_UPDATE_LIGHTING_17 = ReflectionUtil.getMethod(WORLD, "updateLighting", ENUM_SKY_BLOCK, Integer.TYPE, Integer.TYPE, Integer.TYPE);
+                WORLD_UPDATE_LIGHTING = ReflectionUtil.getMethod(WORLD, "updateLighting", ENUM_SKY_BLOCK, BLOCK_POS);
+            }
+
             BLOCK_ENUM = ReflectionUtil.getEnumConstant(ENUM_SKY_BLOCK, 1);
             CHUNK_GET_HANDLE = ReflectionUtil.getMethod(ReflectionUtil.getCBClass("CraftChunk"), "getHandle");
             final Class<?> BLOCK = ReflectionUtil.getNMSClass("Block");
@@ -66,7 +74,13 @@ public final class NMSUtil {
                     return;
                 }
 
-                WORLD_C_17.invoke(WORLD_GET_HANDLE.invoke(block.getWorld()), BLOCK_ENUM, x, y, z);
+                final Object worldHandle = WORLD_GET_HANDLE.invoke(block.getWorld());
+
+                if (CompatUtil.isPaperSpigot()) {
+                    WORLD_UPDATE_LIGHTING_17.invoke(worldHandle, BLOCK_ENUM, x, y, z);
+                } else {
+                    WORLD_C_17.invoke(worldHandle, BLOCK_ENUM, x, y, z);
+                }
             } else {
                 final Object blockPos = BLOCK_POS_CONSTRUCTOR.newInstance(x, y, z);
 
@@ -81,7 +95,13 @@ public final class NMSUtil {
                     return;
                 }
 
-                WORLD_C.invoke(WORLD_GET_HANDLE.invoke(block.getWorld()), BLOCK_ENUM, BLOCK_POS_CONSTRUCTOR.newInstance(x, y, z));
+                final Object worldHandle = WORLD_GET_HANDLE.invoke(block.getWorld());
+
+                if (CompatUtil.isPaperSpigot() && WORLD_UPDATE_LIGHTING != null) {
+                    WORLD_UPDATE_LIGHTING.invoke(worldHandle, BLOCK_ENUM, blockPos);
+                } else {
+                    WORLD_C.invoke(worldHandle, BLOCK_ENUM, blockPos);
+                }
             }
         } catch (Throwable ex) {
             ex.printStackTrace();
