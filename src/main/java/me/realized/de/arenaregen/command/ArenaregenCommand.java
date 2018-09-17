@@ -7,6 +7,7 @@ import me.realized.de.arenaregen.Lang;
 import me.realized.de.arenaregen.command.commands.CreateCommand;
 import me.realized.de.arenaregen.command.commands.DeleteCommand;
 import me.realized.de.arenaregen.command.commands.ListCommand;
+import me.realized.de.arenaregen.command.commands.ResetCommand;
 import me.realized.duels.api.Duels;
 import me.realized.duels.api.command.SubCommand;
 import org.bukkit.command.CommandSender;
@@ -21,6 +22,7 @@ public class ArenaregenCommand extends SubCommand {
         register(
             new CreateCommand(extension, api),
             new DeleteCommand(extension, api),
+            new ResetCommand(extension, api),
             new ListCommand(extension, api)
         );
     }

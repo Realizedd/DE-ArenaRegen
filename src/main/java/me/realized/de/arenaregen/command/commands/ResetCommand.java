@@ -3,15 +3,16 @@ package me.realized.de.arenaregen.command.commands;
 import me.realized.de.arenaregen.ArenaRegen;
 import me.realized.de.arenaregen.Lang;
 import me.realized.de.arenaregen.command.ARCommand;
+import me.realized.de.arenaregen.zone.ResetZone;
 import me.realized.duels.api.Duels;
 import me.realized.duels.api.arena.Arena;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.CommandSender;
 
-public class DeleteCommand extends ARCommand {
+public class ResetCommand extends ARCommand {
 
-    public DeleteCommand(final ArenaRegen extension, final Duels api) {
-        super(extension, api, "delete", "delete [arena]", "Deletes the reset zone for arena.", 3, false);
+    public ResetCommand(final ArenaRegen extension, final Duels api) {
+        super(extension, api, "reset", "reset [arena]", "Resets the reset zone for arena.", 3, false);
     }
 
     @Override
@@ -24,11 +25,14 @@ public class DeleteCommand extends ARCommand {
             return;
         }
 
-        if (!zoneManager.remove(name)) {
+        final ResetZone zone = zoneManager.get(name);
+
+        if (zone == null) {
             Lang.ZONE_NOT_FOUND.sendTo(sender, name);
             return;
         }
 
-        Lang.DELETED.sendTo(sender, name);
+        zone.reset();
+        Lang.RESET.sendTo(sender, name);
     }
 }

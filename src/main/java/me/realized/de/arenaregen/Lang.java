@@ -22,6 +22,7 @@ public enum Lang {
     POS_SET("{0} position set at &f{1}&7."),
     CREATED("Reset zone created! Arena &f{0} &7will now reset automatically when a duel ends."),
     DELETED("Reset zone has been deleted for &f{0}&7."),
+    RESET("Reset zone has been reset for &f{0}&7."),
     LIST_HEADER("List of &fReset Zones &9-"),
     LIST_FORMAT("&bArena: &c{0} &7- &bMin: &c{1} &7- &bMax: &c{2} &7- &bBlocks: &c{3}", false),
     LIST_FOOTER("Total: &a{0}");

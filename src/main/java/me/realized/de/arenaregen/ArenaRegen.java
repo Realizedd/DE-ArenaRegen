@@ -28,7 +28,7 @@ public class ArenaRegen extends DuelsExtension {
 
     @Override
     public String getRequiredVersion() {
-        return "3.1.2";
+        return "3.2.1";
     }
 
     public void error(final String s, final Throwable thrown) {

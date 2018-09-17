@@ -91,7 +91,7 @@ public class ResetZoneManager {
         return selections.get(player.getUniqueId());
     }
 
-    private ResetZone get(final String name) {
+    public ResetZone get(final String name) {
         return zones.get(name);
     }
 

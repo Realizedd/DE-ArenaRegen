@@ -142,7 +142,7 @@ public class ResetZone {
     }
 
     @SuppressWarnings("deprecation")
-    void reset() {
+    public void reset() {
         final Set<ChunkLoc> chunks = new HashSet<>();
 
         doForAll(block -> {
