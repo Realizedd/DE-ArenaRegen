@@ -52,6 +52,10 @@ public final class NMSUtil {
             final Class<?> BLOCK_DATA = ReflectionUtil.getNMSClass("IBlockData");
             CHUNK_SET_BLOCK_12 = ReflectionUtil.getMethod(CHUNK, "a", BLOCK_POS, BLOCK_DATA);
             CHUNK_SET_BLOCK = ReflectionUtil.getMethod(CHUNK, "a", BLOCK_POS, BLOCK_DATA, Boolean.TYPE);
+
+            if (CHUNK_SET_BLOCK == null) {
+                CHUNK_SET_BLOCK = ReflectionUtil.getMethod(CHUNK, "setType", BLOCK_POS, BLOCK_DATA, Boolean.TYPE);
+            }
         } catch (Throwable ex) {
             ex.printStackTrace();
         }
