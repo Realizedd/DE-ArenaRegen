@@ -26,6 +26,10 @@ public final class NMSUtil {
     private static Method CHUNK_SET_BLOCK_12;
     private static Method CHUNK_SET_BLOCK;
 
+    private static Method GET_CHUNK_PROVIDER;
+    private static Method GET_LIGHT_ENGINE;
+    private static Method LIGHT_ENGINE_A;
+
     static {
         try {
             final Class<?> BLOCK_POS = ReflectionUtil.getNMSClass("BlockPosition");
@@ -35,8 +39,13 @@ public final class NMSUtil {
             final Class<?> ENUM_SKY_BLOCK = ReflectionUtil.getNMSClass("EnumSkyBlock");
             WORLD_C_17 = ReflectionUtil.getMethod(WORLD, "c", ENUM_SKY_BLOCK, Integer.TYPE, Integer.TYPE, Integer.TYPE);
             WORLD_C = ReflectionUtil.getMethod(WORLD, "c", ENUM_SKY_BLOCK, BLOCK_POS);
+            GET_CHUNK_PROVIDER = ReflectionUtil.getMethod(WORLD, "getChunkProvider");
+            final Class<?> CHUNK_PROVIDER = ReflectionUtil.getNMSClass("IChunkProvider");
+            GET_LIGHT_ENGINE = ReflectionUtil.getMethod(CHUNK_PROVIDER, "getLightEngine");
+            final Class<?> LIGHT_ENGINE = ReflectionUtil.getNMSClass("LightEngine");
+            LIGHT_ENGINE_A = ReflectionUtil.getMethod(LIGHT_ENGINE, "a", BLOCK_POS);
 
-            if (CompatUtil.isPaperSpigot()) {
+            if (CompatUtil.isPaper()) {
                 WORLD_UPDATE_LIGHTING_17 = ReflectionUtil.getMethod(WORLD, "updateLighting", ENUM_SKY_BLOCK, Integer.TYPE, Integer.TYPE, Integer.TYPE);
                 WORLD_UPDATE_LIGHTING = ReflectionUtil.getMethod(WORLD, "updateLighting", ENUM_SKY_BLOCK, BLOCK_POS);
             }
@@ -80,7 +89,7 @@ public final class NMSUtil {
 
                 final Object worldHandle = WORLD_GET_HANDLE.invoke(block.getWorld());
 
-                if (CompatUtil.isPaperSpigot()) {
+                if (CompatUtil.isPaper()) {
                     WORLD_UPDATE_LIGHTING_17.invoke(worldHandle, BLOCK_ENUM, x, y, z);
                 } else {
                     WORLD_C_17.invoke(worldHandle, BLOCK_ENUM, x, y, z);
@@ -101,10 +110,14 @@ public final class NMSUtil {
 
                 final Object worldHandle = WORLD_GET_HANDLE.invoke(block.getWorld());
 
-                if (CompatUtil.isPaperSpigot() && WORLD_UPDATE_LIGHTING != null) {
-                    WORLD_UPDATE_LIGHTING.invoke(worldHandle, BLOCK_ENUM, blockPos);
+                if (CompatUtil.isPre1_14()) {
+                    if (CompatUtil.isPaper() && WORLD_UPDATE_LIGHTING != null) {
+                        WORLD_UPDATE_LIGHTING.invoke(worldHandle, BLOCK_ENUM, blockPos);
+                    } else {
+                        WORLD_C.invoke(worldHandle, BLOCK_ENUM, blockPos);
+                    }
                 } else {
-                    WORLD_C.invoke(worldHandle, BLOCK_ENUM, blockPos);
+                    LIGHT_ENGINE_A.invoke(GET_LIGHT_ENGINE.invoke(GET_CHUNK_PROVIDER.invoke(worldHandle)), blockPos);
                 }
             }
         } catch (Throwable ex) {

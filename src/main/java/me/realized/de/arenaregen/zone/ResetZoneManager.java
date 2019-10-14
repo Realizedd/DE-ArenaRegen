@@ -228,6 +228,7 @@ public class ResetZoneManager {
                 return;
             }
 
+            // TODO: 5/28/19 Disable arena and separate lighting updates into multiple segments?
             zone.reset();
         }
     }

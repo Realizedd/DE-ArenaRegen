@@ -25,7 +25,11 @@ final class CompatUtil {
         return SUB_VERSION < 13;
     }
 
-    static boolean isPaperSpigot() {
+    static boolean isPre1_14() {
+        return SUB_VERSION < 14;
+    }
+
+    static boolean isPaper() {
         return PAPER_SPIGOT;
     }
 }
