@@ -17,6 +17,10 @@ public class BlockInfo {
         this.data = data;
     }
 
+    public BlockInfo() {
+        this(Material.AIR, (byte) 0);
+    }
+
     @SuppressWarnings("deprecation")
     public BlockInfo(final BlockState state) {
         this(state.getType(), state.getRawData());

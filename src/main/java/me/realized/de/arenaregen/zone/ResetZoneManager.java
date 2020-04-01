@@ -13,6 +13,7 @@ import me.realized.de.arenaregen.Lang;
 import me.realized.de.arenaregen.config.Config;
 import me.realized.de.arenaregen.util.StringUtil;
 import me.realized.duels.api.Duels;
+import me.realized.duels.api.arena.Arena;
 import me.realized.duels.api.arena.ArenaManager;
 import me.realized.duels.api.event.arena.ArenaRemoveEvent;
 import me.realized.duels.api.event.match.MatchEndEvent;
@@ -62,14 +63,15 @@ public class ResetZoneManager {
         if (files != null) {
             for (final File file : files) {
                 final String name = file.getName().replace(".yml", "");
+                final Arena arena = arenaManager.get(name);
 
-                if (arenaManager.get(name) == null) {
+                if (arena == null) {
                     file.delete();
                     continue;
                 }
 
                 try {
-                    zones.put(name, new ResetZone(extension, api, name, file));
+                    zones.put(name, new ResetZone(extension, api, arena, file));
                 } catch (Exception ex) {
                     extension.error("Could not load reset zone '" + name + "'!", ex);
                 }
@@ -79,6 +81,12 @@ public class ResetZoneManager {
 
     public void save() {
         zones.values().forEach(zone -> {
+            if (zone.isResetting()) {
+                zone.getArena().setDisabled(false);
+                zone.getTask().cancel();
+                zone.reset(true);
+            }
+
             try {
                 zone.save();
             } catch (IOException ex) {
@@ -95,14 +103,14 @@ public class ResetZoneManager {
         return zones.get(name);
     }
 
-    public boolean create(final String name, final Selection selection) {
-        if (zones.containsKey(name)) {
+    public boolean create(final Arena arena, final Selection selection) {
+        if (zones.containsKey(arena.getName())) {
             return false;
         }
 
-        final ResetZone zone = new ResetZone(extension, api, name, folder, selection.getFirst(), selection.getSecond());
+        final ResetZone zone = new ResetZone(extension, api, arena, folder, selection.getFirst(), selection.getSecond());
         zone.loadBlocks();
-        zones.put(name, zone);
+        zones.put(arena.getName(), zone);
         return true;
     }
 
@@ -122,6 +130,18 @@ public class ResetZoneManager {
     }
 
     private class ResetZoneListener implements Listener {
+
+        @EventHandler
+        public void on(final MatchEndEvent event) {
+            final Arena arena = event.getMatch().getArena();
+            final ResetZone zone = get(arena.getName());
+
+            if (zone == null) {
+                return;
+            }
+
+            zone.reset();
+        }
 
         @EventHandler
         public void on(final PlayerInteractEvent event) {
@@ -219,21 +239,9 @@ public class ResetZoneManager {
 
             event.setCancelled(true);
         }
-
-        @EventHandler
-        public void on(final MatchEndEvent event) {
-            final ResetZone zone = get(event.getMatch().getArena().getName());
-
-            if (zone == null) {
-                return;
-            }
-
-            // TODO: 5/28/19 Disable arena and separate lighting updates into multiple segments?
-            zone.reset();
-        }
     }
 
-    public class Selection {
+    public static class Selection {
 
         @Getter
         @Setter

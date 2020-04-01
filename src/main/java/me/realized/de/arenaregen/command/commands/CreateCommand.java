@@ -34,7 +34,7 @@ public class CreateCommand extends ARCommand {
             return;
         }
 
-        if (!zoneManager.create(name, selection)) {
+        if (!zoneManager.create(arena, selection)) {
             Lang.ALREADY_EXISTS.sendTo(sender, name);
             return;
         }
