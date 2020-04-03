@@ -2,6 +2,9 @@
 # default: IRON_HOE
 selecting-tool: IRON_HOE
 
+# Blocks to reset per tick.
+blocks-per-tick: 25
+
 # Allow breaking blocks in the reset zone that is not placed by a player in match.
 # default: false
 allow-arena-block-break: false

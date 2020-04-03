@@ -10,6 +10,8 @@ public class Config {
     @Getter
     private final Material selectingTool;
     @Getter
+    private final int blocksPerTick;
+    @Getter
     private final boolean allowArenaBlockBreak;
     @Getter
     private final boolean removeDroppedItems;
@@ -26,6 +28,7 @@ public class Config {
         final FileConfiguration config = extension.getConfig();
         this.selectingTool = Material.getMaterial(config.getString("selecting-tool", "IRON_AXE"));
         this.allowArenaBlockBreak = config.getBoolean("allow-arena-block-break", false);
+        this.blocksPerTick = config.getInt("blocks-per-tick", 25);
         this.removeDroppedItems = config.getBoolean("remove-dropped-items", true);
         this.preventBlockBurn = config.getBoolean("prevent-block-burn", true);
         this.preventBlockMelt = config.getBoolean("prevent-block-melt", true);

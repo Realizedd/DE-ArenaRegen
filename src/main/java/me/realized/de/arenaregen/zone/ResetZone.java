@@ -207,7 +207,7 @@ public class ResetZone {
         } else {
             arena.setDisabled(true);
             task = new ResetTask(chunks, changed);
-            task.runTaskTimer(api, 1L, 3L);
+            task.runTaskTimer(api, 1L, 1L);
         }
     }
 
@@ -267,7 +267,7 @@ public class ResetZone {
                 NMSUtil.setBlockFast(block, info.getType(), info.getData());
                 count++;
 
-                if (count >= 25) {
+                if (count >= config.getBlocksPerTick()) {
                     return;
                 }
             }
