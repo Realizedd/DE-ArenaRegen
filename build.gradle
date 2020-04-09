@@ -10,7 +10,7 @@ buildscript {
 
 allprojects {
     group 'me.realized.de'
-    version '1.0.5'
+    version '1.0.4'
 }
 
 subprojects {
