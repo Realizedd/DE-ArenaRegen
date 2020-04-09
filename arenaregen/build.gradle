@@ -24,6 +24,7 @@ dependencies {
     compile project(':v1_8_R3')
     compile project(':v1_8_R3_paper')
     compile project(':v1_12_R1')
+    compile project(':v1_14_R1')
     compile project(':v1_15_R1')
 }
 
@@ -35,6 +36,7 @@ shadowJar {
         include(dependency(':v1_8_R3'))
         include(dependency(':v1_8_R3_paper'))
         include(dependency(':v1_12_R1'))
+        include(dependency(':v1_14_R1'))
         include(dependency(':v1_15_R1'))
     }
 }
