@@ -1,2 +1,8 @@
-rootProject.name = 'DE-ArenaRegen'
+rootProject.name = 'ArenaRegenParent'
+include 'arenaregen'
+include 'nms'
+include 'v1_8_R3'
+include 'v1_8_R3_paper'
+include 'v1_12_R1'
+include 'v1_15_R1'
 

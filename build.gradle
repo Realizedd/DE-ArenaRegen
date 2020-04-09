@@ -1,43 +1,47 @@
-import org.apache.tools.ant.filters.ReplaceTokens
+buildscript {
+    repositories {
+        jcenter()
+    }
 
-group 'me.realized.de'
-version '1.0.4-SNAPSHOT'
-apply plugin: 'java'
-
-sourceCompatibility = 1.8
-
-processResources {
-    from(sourceSets.main.resources.srcDirs) {
-        include '**/*.yml'
-        filter(ReplaceTokens, tokens: [VERSION: project.version])
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
     }
 }
 
-repositories {
-    mavenCentral()
-
-    maven {
-        name 'spigot-repo'
-        url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots'
-    }
-
-    maven {
-        name 'bungeecord-repo'
-        url 'https://oss.sonatype.org/content/repositories/snapshots'
-    }
-
-    maven {
-        name 'jitpack-repo'
-        url 'https://jitpack.io'
-    }
+allprojects {
+    group 'me.realized.de'
+    version '1.0.5'
 }
 
-dependencies {
-    compile 'org.projectlombok:lombok:1.16.20'
-    compile 'org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT'
-    compile 'com.github.RealizedMC.Duels:duels-api:3.3.0'
-}
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'com.github.johnrengelman.shadow'
 
-jar {
-    archiveName = archiveName.replace("DE-", "")
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+
+        maven {
+            name 'spigot-repo'
+            url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots'
+        }
+
+        maven {
+            name 'bungeecord-repo'
+            url 'https://oss.sonatype.org/content/repositories/snapshots'
+        }
+
+        maven {
+            name 'jitpack-repo'
+            url 'https://jitpack.io'
+        }
+
+        maven {
+            name 'paper-repo'
+            url 'https://papermc.io/repo/repository/maven-public/'
+        }
+    }
 }
