@@ -2,7 +2,6 @@ package me.realized.de.arenaregen.command.commands;
 
 import java.util.Collection;
 import me.realized.de.arenaregen.ArenaRegen;
-import me.realized.de.arenaregen.Lang;
 import me.realized.de.arenaregen.command.ARCommand;
 import me.realized.de.arenaregen.util.StringUtil;
 import me.realized.de.arenaregen.zone.ResetZone;
@@ -20,12 +19,13 @@ public class ListCommand extends ARCommand {
         final Collection<ResetZone> zones = zoneManager.getZones();
 
         if (zones.isEmpty()) {
-            Lang.NO_ACTIVE_ZONES.sendTo(sender);
+            lang.sendMessage(sender, "ERROR.no-active-zones");
             return;
         }
 
-        Lang.LIST_HEADER.sendTo(sender);
-        zones.forEach(zone -> Lang.LIST_FORMAT.sendTo(sender, zone.getName(), StringUtil.from(zone.getMin()), StringUtil.from(zone.getMax()), zone.getTotalBlocks()));
-        Lang.LIST_FOOTER.sendTo(sender, zones.size());
+        lang.sendMessage(sender, "COMMAND.arenaregen.list.header");
+        zones.forEach(zone -> lang.sendMessage(sender, "COMMAND.arenaregen.list.format",
+            "name", zone.getName(), "min_pos", StringUtil.from(zone.getMin()), "max_pos", StringUtil.from(zone.getMax()), "blocks_count", zone.getTotalBlocks()));
+        lang.sendMessage(sender, "COMMAND.arenaregen.list.footer", "zones_count", zones.size());
     }
 }

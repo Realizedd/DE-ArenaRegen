@@ -31,6 +31,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class ResetZone {
@@ -51,6 +52,9 @@ public class ResetZone {
 
     @Getter
     private BukkitRunnable task;
+
+    @Getter
+    private Set<ChunkLoc> chunks = new HashSet<>();
 
     ResetZone(final ArenaRegen extension, final Duels api, final Arena arena, final File folder, final Location first, final Location second) {
         this.api = api;
@@ -147,6 +151,20 @@ public class ResetZone {
         });
     }
 
+    public void refreshChunks(final Player... players) {
+        chunks.forEach(chunkLoc -> {
+            final Chunk chunk = min.getWorld().getChunkAt(chunkLoc.x, chunkLoc.z);
+
+            if (!chunk.isLoaded()) {
+                return;
+            }
+
+            for (final Player player : players) {
+                handler.sendChunkUpdate(player, chunk);
+            }
+        });
+    }
+
     public boolean isResetting() {
         return task != null;
     }
@@ -161,16 +179,14 @@ public class ResetZone {
         }
     }
 
+    // Called before reset zones are saved to files.
     public void resetInstant() {
-        final Set<ChunkLoc> chunks = new HashSet<>();
-
         doForAll(block -> {
             final Position position = new Position(block);
             final BlockInfo info = blocks.get(position);
 
             if (info == null) {
                 if (block.getType() != Material.AIR) {
-                    chunks.add(new ChunkLoc(block.getChunk()));
                     handler.setBlockFast(block, Material.AIR, 0);
                 }
 
@@ -179,11 +195,8 @@ public class ResetZone {
                 return;
             }
 
-            chunks.add(new ChunkLoc(block.getChunk()));
             handler.setBlockFast(block, info.getType(), info.getData());
         });
-
-        chunks.forEach(chunkLoc -> min.getWorld().refreshChunk(chunkLoc.x, chunkLoc.z));
 
         if (!config.isRemoveDroppedItems()) {
             return;
@@ -236,7 +249,6 @@ public class ResetZone {
     public class IndexTask extends BukkitRunnable {
 
         private final Callback onDone;
-        private final Set<ChunkLoc> chunks = new HashSet<>();
         private final Queue<Pair<Block, BlockInfo>> changed = new LinkedList<>();
         private int x = min.getBlockX();
 
@@ -252,10 +264,11 @@ public class ResetZone {
                     final Position position = new Position(block);
                     final BlockInfo info = blocks.get(position);
 
+                    chunks.add(new ChunkLoc(block.getChunk()));
+
                     if (info == null) {
                         // If no stored information is available (= air) but block is not air, set to air
                         if (block.getType() != Material.AIR) {
-                            chunks.add(new ChunkLoc(block.getChunk()));
                             changed.add(new Pair<>(block, new BlockInfo()));
                         }
 
@@ -264,7 +277,6 @@ public class ResetZone {
                         continue;
                     }
 
-                    chunks.add(new ChunkLoc(block.getChunk()));
                     changed.add(new Pair<>(block, info));
                 }
             }
@@ -273,7 +285,7 @@ public class ResetZone {
 
             if (x > max.getBlockX()) {
                 cancel();
-                task = new ResetTask(onDone, chunks, changed);
+                task = new ResetTask(onDone, changed);
                 task.runTaskTimer(api, 1L, 1L);
             }
         }
@@ -282,12 +294,10 @@ public class ResetZone {
     public class ResetTask extends BukkitRunnable {
 
         private final Callback onDone;
-        private final Set<ChunkLoc> chunks;
         private final Queue<Pair<Block, BlockInfo>> changed;
 
-        public ResetTask(final Callback onDone, final Set<ChunkLoc> chunks, final Queue<Pair<Block, BlockInfo>> changed) {
+        public ResetTask(final Callback onDone, final Queue<Pair<Block, BlockInfo>> changed) {
             this.onDone = onDone;
-            this.chunks = chunks;
             this.changed = changed;
         }
 
@@ -310,17 +320,22 @@ public class ResetZone {
             cancel();
             arena.setDisabled(false);
             task = null;
-            chunks.forEach(chunkLoc -> min.getWorld().refreshChunk(chunkLoc.x, chunkLoc.z));
+
+            if (config.isRemoveDroppedItems()) {
+                chunks.forEach(chunkLoc -> {
+                    final Chunk chunk = min.getWorld().getChunkAt(chunkLoc.x, chunkLoc.z);
+
+                    for (final Entity entity : chunk.getEntities()) {
+                        if (entity instanceof Item) {
+                            entity.remove();
+                        }
+                    }
+                });
+            }
 
             if (onDone != null) {
                 onDone.call();
             }
-
-            if (!config.isRemoveDroppedItems()) {
-                return;
-            }
-
-            min.getWorld().getEntitiesByClass(Item.class).stream().filter(item -> contains(item.getLocation())).forEach(Entity::remove);
         }
     }
 }

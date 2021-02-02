@@ -1,13 +1,13 @@
 package me.realized.de.arenaregen.command.commands;
 
 import me.realized.de.arenaregen.ArenaRegen;
-import me.realized.de.arenaregen.Lang;
 import me.realized.de.arenaregen.command.ARCommand;
 import me.realized.de.arenaregen.zone.ResetZone;
 import me.realized.duels.api.Duels;
 import me.realized.duels.api.arena.Arena;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class ResetCommand extends ARCommand {
 
@@ -21,18 +21,24 @@ public class ResetCommand extends ARCommand {
         final Arena arena = arenaManager.get(name);
 
         if (arena == null) {
-            Lang.ARENA_NOT_FOUND.sendTo(sender, name);
+            lang.sendMessage(sender, "ERROR.arena-not-found", "name", name);
             return;
         }
 
         final ResetZone zone = zoneManager.get(name);
 
         if (zone == null) {
-            Lang.ZONE_NOT_FOUND.sendTo(sender, name);
+            lang.sendMessage(sender, "ERROR.zone-not-found", "name", name);
             return;
         }
 
-        Lang.RESET_START.sendTo(sender, name);
-        zone.reset(() -> Lang.RESET_END.sendTo(sender, name));
+        lang.sendMessage(sender, "COMMAND.arenaregen.reset.start", "name", name);
+        zone.reset(() -> {
+            if (sender instanceof Player) {
+                zone.refreshChunks((Player) sender);
+            }
+
+            lang.sendMessage(sender, "COMMAND.arenaregen.reset.end", "name", name);
+        });
     }
 }

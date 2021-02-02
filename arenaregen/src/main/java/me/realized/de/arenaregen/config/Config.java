@@ -20,6 +20,8 @@ public class Config {
     @Getter
     private final boolean preventBlockMelt;
     @Getter
+    private final boolean preventBlockExplode;
+    @Getter
     private final boolean preventFireSpread;
     @Getter
     private final boolean preventLeafDecay;
@@ -32,6 +34,7 @@ public class Config {
         this.removeDroppedItems = config.getBoolean("remove-dropped-items", true);
         this.preventBlockBurn = config.getBoolean("prevent-block-burn", true);
         this.preventBlockMelt = config.getBoolean("prevent-block-melt", true);
+        this.preventBlockExplode = config.getBoolean("prevent-block-explode", true);
         this.preventFireSpread = config.getBoolean("prevent-fire-spread", true);
         this.preventLeafDecay = config.getBoolean("prevent-leaf-decay", true);
     }

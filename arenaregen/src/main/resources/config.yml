@@ -18,10 +18,17 @@ remove-dropped-items: true
 prevent-block-burn: true
 
 # Prevents blocks in the reset zone from melting. (snow, ice)
+# default: true
 prevent-block-melt: true
 
+# Prevents blocks in the reset zone from exploding.
+# default: true
+prevent-block-explode: true
+
 # Prevents fire in the reset zone from spreading.
+# default: true
 prevent-fire-spread: true
 
 # Prevents tree leaves in the reset zone from decaying.
+# default: true
 prevent-leaf-decay: true

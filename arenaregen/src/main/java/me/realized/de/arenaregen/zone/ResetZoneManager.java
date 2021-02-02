@@ -5,34 +5,31 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
-import lombok.Getter;
-import lombok.Setter;
 import me.realized.de.arenaregen.ArenaRegen;
-import me.realized.de.arenaregen.Lang;
 import me.realized.de.arenaregen.config.Config;
-import me.realized.de.arenaregen.util.StringUtil;
+import me.realized.de.arenaregen.config.Lang;
+import me.realized.de.arenaregen.selection.Selection;
+import me.realized.de.arenaregen.util.CompatUtil;
 import me.realized.duels.api.Duels;
 import me.realized.duels.api.arena.Arena;
 import me.realized.duels.api.arena.ArenaManager;
 import me.realized.duels.api.event.arena.ArenaRemoveEvent;
 import me.realized.duels.api.event.match.MatchEndEvent;
-import org.bukkit.Location;
+import me.realized.duels.api.event.match.MatchStartEvent;
+import me.realized.duels.api.event.spectate.SpectateStartEvent;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockFadeEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
 import org.bukkit.event.block.LeavesDecayEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.entity.EntityExplodeEvent;
 
 public class ResetZoneManager {
 
@@ -40,19 +37,23 @@ public class ResetZoneManager {
     private final Duels api;
     private final ArenaManager arenaManager;
     private final Config config;
+    private final Lang lang;
     private final File folder;
 
     private final Map<String, ResetZone> zones = new HashMap<>();
-    private final Map<UUID, Selection> selections = new HashMap<>();
-
 
     public ResetZoneManager(final ArenaRegen extension, final Duels api) {
         this.extension = extension;
         this.api = api;
         this.arenaManager = api.getArenaManager();
         this.config = extension.getConfiguration();
+        this.lang = extension.getLang();
         this.folder = new File(extension.getDataFolder(), "zones");
         api.registerListener(new ResetZoneListener());
+
+        if (CompatUtil.hasBlockExplodeEvent()) {
+            api.registerListener(new BlockExplodeListener());
+        }
 
         if (!folder.exists()) {
             folder.mkdir();
@@ -95,10 +96,6 @@ public class ResetZoneManager {
         });
     }
 
-    public Selection get(final Player player) {
-        return selections.get(player.getUniqueId());
-    }
-
     public ResetZone get(final String name) {
         return zones.get(name);
     }
@@ -132,6 +129,30 @@ public class ResetZoneManager {
     private class ResetZoneListener implements Listener {
 
         @EventHandler
+        public void on(final MatchStartEvent event) {
+            final Arena arena = event.getMatch().getArena();
+            final ResetZone zone = get(arena.getName());
+
+            if (zone == null) {
+                return;
+            }
+
+            zone.refreshChunks(event.getPlayers());
+        }
+
+        @EventHandler
+        public void on(final SpectateStartEvent event) {
+            final Arena arena = event.getSpectator().getArena();
+            final ResetZone zone = get(arena.getName());
+
+            if (zone == null) {
+                return;
+            }
+
+            zone.refreshChunks(api.getServer().getPlayer(event.getSpectator().getUuid()));
+        }
+
+        @EventHandler
         public void on(final MatchEndEvent event) {
             final Arena arena = event.getMatch().getArena();
             final ResetZone zone = get(arena.getName());
@@ -141,42 +162,6 @@ public class ResetZoneManager {
             }
 
             zone.reset(null);
-        }
-
-        @EventHandler
-        public void on(final PlayerInteractEvent event) {
-            if (!(event.hasItem() && event.hasBlock())) {
-                return;
-            }
-
-            final ItemStack item = event.getItem();
-
-            if (item.getType() != config.getSelectingTool()) {
-                return;
-            }
-
-            final Player player = event.getPlayer();
-
-            if (!player.hasPermission("duels.admin")) {
-                return;
-            }
-
-            event.setCancelled(true);
-
-            final Selection selection = selections.computeIfAbsent(player.getUniqueId(), result -> new Selection());
-
-            if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
-                selection.setFirst(event.getClickedBlock().getLocation().clone());
-                Lang.POS_SET.sendTo(player, "First", StringUtil.from(selection.getFirst()));
-            } else {
-                selection.setSecond(event.getClickedBlock().getLocation().clone());
-                Lang.POS_SET.sendTo(player, "Second", StringUtil.from(selection.getSecond()));
-            }
-        }
-
-        @EventHandler
-        public void on(final PlayerQuitEvent event) {
-            selections.remove(event.getPlayer().getUniqueId());
         }
 
         @EventHandler
@@ -195,7 +180,7 @@ public class ResetZoneManager {
             }
 
             event.setCancelled(true);
-            Lang.BLOCK_ARENA_BLOCK_BREAK.sendTo(player);
+            lang.sendMessage(player, "ERROR.prevent.arena-block-break");
         }
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -223,6 +208,16 @@ public class ResetZoneManager {
         }
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        public void on(final EntityExplodeEvent event) {
+            if (!config.isPreventBlockExplode() || event.blockList().stream().allMatch(block -> zones.values().stream().noneMatch(zone -> zone.isCached(block)))) {
+                return;
+            }
+
+            event.setCancelled(true);
+        }
+
+
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
         public void on(final BlockIgniteEvent event) {
             if (!config.isPreventFireSpread() || event.getCause() != IgniteCause.SPREAD || zones.values().stream().noneMatch(zone -> zone.isCached(event.getBlock()))) {
                 return;
@@ -241,16 +236,15 @@ public class ResetZoneManager {
         }
     }
 
-    public static class Selection {
+    private class BlockExplodeListener implements Listener {
 
-        @Getter
-        @Setter
-        private Location first, second;
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        public void on(final BlockExplodeEvent event) {
+            if (!config.isPreventBlockExplode() || event.blockList().stream().allMatch(block -> zones.values().stream().noneMatch(zone -> zone.isCached(block)))) {
+                return;
+            }
 
-        Selection() {}
-
-        public boolean isSelected() {
-            return first != null && second != null;
+            event.setCancelled(true);
         }
     }
 }

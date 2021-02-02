@@ -10,7 +10,7 @@ buildscript {
 
 allprojects {
     group 'me.realized.de'
-    version '1.0.4'
+    version '1.0.5'
 }
 
 subprojects {
@@ -37,11 +37,6 @@ subprojects {
         maven {
             name 'jitpack-repo'
             url 'https://jitpack.io'
-        }
-
-        maven {
-            name 'paper-repo'
-            url 'https://papermc.io/repo/repository/maven-public/'
         }
     }
 }

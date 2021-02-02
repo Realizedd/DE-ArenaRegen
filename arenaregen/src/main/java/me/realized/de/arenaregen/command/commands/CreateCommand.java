@@ -1,9 +1,8 @@
 package me.realized.de.arenaregen.command.commands;
 
 import me.realized.de.arenaregen.ArenaRegen;
-import me.realized.de.arenaregen.Lang;
 import me.realized.de.arenaregen.command.ARCommand;
-import me.realized.de.arenaregen.zone.ResetZoneManager.Selection;
+import me.realized.de.arenaregen.selection.Selection;
 import me.realized.duels.api.Duels;
 import me.realized.duels.api.arena.Arena;
 import org.apache.commons.lang.StringUtils;
@@ -22,23 +21,23 @@ public class CreateCommand extends ARCommand {
         final Arena arena = arenaManager.get(name);
 
         if (arena == null) {
-            Lang.ARENA_NOT_FOUND.sendTo(sender, name);
+            lang.sendMessage(sender, "ERROR.arena-not-found", "name", name);
             return;
         }
 
         final Player player = (Player) sender;
-        final Selection selection = zoneManager.get(player);
+        final Selection selection = selectionManager.get(player);
 
         if (selection == null || !selection.isSelected()) {
-            Lang.NO_SELECTION.sendTo(sender);
+            lang.sendMessage(sender, "ERROR.no-selection");
             return;
         }
 
         if (!zoneManager.create(arena, selection)) {
-            Lang.ALREADY_EXISTS.sendTo(sender, name);
+            lang.sendMessage(sender, "ERROR.already-exists", "name", name);
             return;
         }
 
-        Lang.CREATED.sendTo(sender, name);
+        lang.sendMessage(sender, "COMMAND.arenaregen.create", "name", name);
     }
 }

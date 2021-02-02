@@ -1,0 +1,39 @@
+# Define placeholders usable in any message below.
+# Example: Adding 'PREFIX: '[Cool]'' below and then putting '{PREFIX}' in a message will display '[Cool]' when the message is sent in game.
+STRINGS:
+  PREFIX: '&9[Duels]'
+  LINE: '&9&m------------------------------------&r'
+  HALF_LINE: '&9&m----------------&r'
+
+ERROR:
+  invalid-sub-command: '{PREFIX} &c''%argument%'' is not a valid command. Please type ''/%command%'' for help.'
+  no-selection: '{PREFIX} &cYou must select two points with an iron axe to create a reset zone.'
+  cancel-arena-block-break: '{PREFIX} &cCannot destroy the arena.'
+  already-exists: '{PREFIX} &cArena ''%name%'' already has a reset zone. To delete, use the command ''/ds ar delete %name%'''
+  arena-not-found: '{PREFIX} &c''%name%'' is not an existing arena.'
+  zone-not-found: '{PREFIX} &c''%name%'' has no reset zone.'
+  no-active-zones: '{PREFIX} &cNo reset zones are available.'
+
+COMMAND:
+  arenaregen:
+    usage:
+    - '{LINE}'
+    - '&f/%command% create [arena] &e- &7Creates a reset zone for arena.'
+    - '&f/%command% delete [arena] &e- &7Deletes the reset zone for arena.'
+    - '&f/%command% list &e- &7Lists available reset zones.'
+    - '&f/%command% reset [arena] &e- &7Resets the reset zone for arena.'
+    - '{LINE}'
+
+    create: '{PREFIX} &7Reset zone created! Arena &f%name% &7will now reset automatically when a duel ends.'
+    delete: '{PREFIX} &7Reset zone has been deleted for &f%name%&7.'
+    reset:
+      start: '{PREFIX} &7Resetting &f%name&7...'
+      end: '{PREFIX} &7Reset complete for &f%name&7.'
+    list:
+      header: '{PREFIX} &7List of &fReset Zones &9-'
+      format: '&bArena: &c%name% &7- &bMin: &c%min_pos% &7- &bMax: &c%max_pos% &7- &bBlocks: &c%blocks_count%'
+      footer: '{PREFIX} &7Total: &a%zones_count%'
+  sub-command-usage: '{PREFIX} &f/%command% %usage% &e- &7%description%'
+
+SELECTION:
+  pos-set: '{PREFIX} &7%pos% position set at &f%location%&7.'

@@ -1,7 +1,6 @@
 package me.realized.de.arenaregen.command.commands;
 
 import me.realized.de.arenaregen.ArenaRegen;
-import me.realized.de.arenaregen.Lang;
 import me.realized.de.arenaregen.command.ARCommand;
 import me.realized.duels.api.Duels;
 import me.realized.duels.api.arena.Arena;
@@ -20,15 +19,15 @@ public class DeleteCommand extends ARCommand {
         final Arena arena = arenaManager.get(name);
 
         if (arena == null) {
-            Lang.ARENA_NOT_FOUND.sendTo(sender, name);
+            lang.sendMessage(sender, "ERROR.arena-not-found", "name", name);
             return;
         }
 
         if (!zoneManager.remove(name)) {
-            Lang.ZONE_NOT_FOUND.sendTo(sender, name);
+            lang.sendMessage(sender, "ERROR.zone-not-found", "name", name);
             return;
         }
 
-        Lang.DELETED.sendTo(sender, name);
+        lang.sendMessage(sender, "COMMAND.arenaregen.delete", "name", name);
     }
 }
