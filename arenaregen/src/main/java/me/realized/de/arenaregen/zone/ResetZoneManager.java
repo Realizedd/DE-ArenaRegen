@@ -15,8 +15,6 @@ import me.realized.duels.api.arena.Arena;
 import me.realized.duels.api.arena.ArenaManager;
 import me.realized.duels.api.event.arena.ArenaRemoveEvent;
 import me.realized.duels.api.event.match.MatchEndEvent;
-import me.realized.duels.api.event.match.MatchStartEvent;
-import me.realized.duels.api.event.spectate.SpectateStartEvent;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -30,6 +28,7 @@ import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
 import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 
 public class ResetZoneManager {
 
@@ -128,28 +127,11 @@ public class ResetZoneManager {
 
     private class ResetZoneListener implements Listener {
 
-        @EventHandler
-        public void on(final MatchStartEvent event) {
-            final Arena arena = event.getMatch().getArena();
-            final ResetZone zone = get(arena.getName());
-
-            if (zone == null) {
-                return;
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        public void on(final ChunkUnloadEvent event) {
+            if (zones.values().stream().anyMatch(zone -> zone.isResetting() && zone.isCached(event.getChunk()))) {
+                event.setCancelled(true);
             }
-
-            zone.refreshChunks(event.getPlayers());
-        }
-
-        @EventHandler
-        public void on(final SpectateStartEvent event) {
-            final Arena arena = event.getSpectator().getArena();
-            final ResetZone zone = get(arena.getName());
-
-            if (zone == null) {
-                return;
-            }
-
-            zone.refreshChunks(api.getServer().getPlayer(event.getSpectator().getUuid()));
         }
 
         @EventHandler
@@ -180,7 +162,7 @@ public class ResetZoneManager {
             }
 
             event.setCancelled(true);
-            lang.sendMessage(player, "ERROR.prevent.arena-block-break");
+            lang.sendMessage(player, "ERROR.cancel-arena-block-break");
         }
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

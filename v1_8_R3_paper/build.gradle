@@ -1,4 +1,4 @@
 dependencies {
-    compile 'io.papermc:paper:1.8.8-R0.1-SNAPSHOT'
-    compile project(':nms')
+    implementation 'io.papermc:paper:1.8.8-R0.1-SNAPSHOT'
+    implementation project(':nms')
 }

@@ -29,9 +29,27 @@ public class ArenaRegen extends DuelsExtension {
     public void onEnable() {
         this.configuration = new Config(this);
         this.lang = new Lang(this);
+        this.handler = findHandler();
 
+        info("NMSHandler: Using " + handler.getClass().getName());
+
+        this.selectionManager = new SelectionManager(this, api);
+        this.zoneManager = new ResetZoneManager(this, api);
+        api.registerSubCommand("duels", new ArenaregenCommand(this, api));
+    }
+
+    private NMS findHandler() {
+        final String handlerVersion = configuration.getBlockResetHandlerVersion();
         final String packageName = api.getServer().getClass().getPackage().getName();
-        final String version = packageName.substring(packageName.lastIndexOf('.') + 1);
+        String version = packageName.substring(packageName.lastIndexOf('.') + 1);
+
+        if (!handlerVersion.equalsIgnoreCase("auto")) {
+            if (handlerVersion.equalsIgnoreCase("fallback")) {
+                return new NMSHandler();
+            }
+
+            version = handlerVersion;
+        }
 
         try {
             Class<?> clazz = null;
@@ -41,19 +59,13 @@ public class ArenaRegen extends DuelsExtension {
             }
 
             if (clazz == null) {
-                clazz = Class.forName("me.realized.de.arenaregen.nms." + version + ".NMSHandler");
+                clazz = ReflectionUtil.getClassUnsafe("me.realized.de.arenaregen.nms." + version + ".NMSHandler");
             }
 
-            this.handler = NMS.class.isAssignableFrom(clazz) ? (NMS) clazz.newInstance() : new NMSHandler();
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException ex) {
-            this.handler = new NMSHandler();
+            return clazz != null && NMS.class.isAssignableFrom(clazz) ? (NMS) clazz.newInstance() : new NMSHandler();
+        } catch (IllegalAccessException | InstantiationException ex) {
+            return new NMSHandler();
         }
-
-        info("NMSHandler: Using " + handler.getClass().getName());
-
-        this.selectionManager = new SelectionManager(this, api);
-        this.zoneManager = new ResetZoneManager(this, api);
-        api.registerSubCommand("duels", new ArenaregenCommand(this, api));
     }
 
     @Override
@@ -63,7 +75,7 @@ public class ArenaRegen extends DuelsExtension {
 
     @Override
     public String getRequiredVersion() {
-        return "3.4.1";
+        return "3.5.0";
     }
 
     public void info(final String s) {

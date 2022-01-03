@@ -7,7 +7,6 @@ import me.realized.duels.api.Duels;
 import me.realized.duels.api.arena.Arena;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 public class ResetCommand extends ARCommand {
 
@@ -34,10 +33,6 @@ public class ResetCommand extends ARCommand {
 
         lang.sendMessage(sender, "COMMAND.arenaregen.reset.start", "name", name);
         zone.reset(() -> {
-            if (sender instanceof Player) {
-                zone.refreshChunks((Player) sender);
-            }
-
             lang.sendMessage(sender, "COMMAND.arenaregen.reset.end", "name", name);
         });
     }

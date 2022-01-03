@@ -1,15 +1,12 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.apache.tools.ant.filters.ReplaceTokens
 
 clean.doFirst {
     delete "$rootDir/out/"
 }
 
-tasks.withType(ShadowJar) {
-    destinationDir = file("$rootDir/out/")
-}
-
 processResources {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
     from(sourceSets.main.resources.srcDirs) {
         include '**/*.yml'
         filter(ReplaceTokens, tokens: [VERSION: project.version])
@@ -17,20 +14,26 @@ processResources {
 }
 
 dependencies {
-    compile 'org.projectlombok:lombok:1.16.20'
-    compile 'org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT'
-    compile 'com.github.Realizedd.Duels:duels-api:3.4.1'
-    compile project(':nms')
-    compile project(':v1_8_R3')
-    compile project(':v1_8_R3_paper')
-    compile project(':v1_12_R1')
-    compile project(':v1_14_R1')
-    compile project(':v1_15_R1')
-    compile project(':v1_16_R3')
+    compileOnly 'org.projectlombok:lombok:1.18.22'
+    annotationProcessor 'org.projectlombok:lombok:1.18.22'
+    implementation 'org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT'
+    implementation 'com.github.Realizedd.Duels:duels-api:3.4.1'
+    implementation project(':nms')
+    implementation project(':v1_8_R3')
+    implementation project(':v1_8_R3_paper')
+    implementation project(':v1_12_R1')
+    implementation project(':v1_14_R1')
+    implementation project(':v1_15_R1')
+    implementation project(':v1_16_R3')
+    implementation project(':v1_17_R1')
+    implementation project(':v1_18_R1')
 }
 
 shadowJar {
-    archiveName = parent.name.replace("Parent", "") + '-' + project.version + '.jar'
+    getDestinationDirectory().set(file("$rootDir/out/"))
+
+    final String archiveName = parent.name.replace("Parent", "") + '-' + project.version + '.jar'
+    getArchiveFileName().set(archiveName)
 
     dependencies {
         include(dependency(':nms'))
@@ -40,7 +43,12 @@ shadowJar {
         include(dependency(':v1_14_R1'))
         include(dependency(':v1_15_R1'))
         include(dependency(':v1_16_R3'))
+        include(dependency(':v1_17_R1'))
+        include(dependency(':v1_18_R1'))
     }
 }
 
-build.dependsOn(shadowJar)
+// To build extension jar, run './gradlew clean build'.
+build {
+    dependsOn(shadowJar)
+}
