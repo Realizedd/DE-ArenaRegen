@@ -58,13 +58,18 @@ public class ResetZoneManager {
             folder.mkdir();
         }
 
-        final File[] files = folder.listFiles((dir, name) -> name.endsWith(".yml"));
+        final File[] files = folder.listFiles();
 
         if (files != null) {
             for (final File file : files) {
-                final String name = file.getName().replace(".yml", "");
-                final Arena arena = arenaManager.get(name);
+                final String name = file.getName();
 
+                if (name.endsWith(".yml")) {
+                    // TODO: convert file from yml to txt
+                }
+
+                final Arena arena = arenaManager.get(name);
+                
                 if (arena == null) {
                     file.delete();
                     continue;

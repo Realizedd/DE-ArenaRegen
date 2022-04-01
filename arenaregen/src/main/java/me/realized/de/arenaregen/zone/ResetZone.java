@@ -80,6 +80,19 @@ public class ResetZone {
         this.handler = extension.getHandler();
         this.config = extension.getConfiguration();
 
+        // TODO Change zone file format to the following:
+        /*
+        -82
+        72
+        -86
+        83
+        142
+        81
+        -34;91;62: STONE;0
+        -34;92;31: STONE;0
+        -34;93;0: STONE;0
+        -34;94;-31: STONE;0
+        */
         final FileConfiguration config = YamlConfiguration.loadConfiguration(file);
         this.arena = arena;
         this.file = file;
