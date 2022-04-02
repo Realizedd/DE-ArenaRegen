@@ -353,32 +353,56 @@ public class ResetZone {
             }
 
             cancel();
-            task = null;
-            chunks.forEach(chunkLoc -> {
-                final Chunk chunk = min.getWorld().getChunkAt(chunkLoc.x, chunkLoc.z);
+            task = new ChunkRefreshTask(onDone);
+            task.runTaskTimer(api, 1L, 1L);
+        }
+    }
 
-                if (!chunk.isLoaded()) {
-                    return;
+
+    public class ChunkRefreshTask extends BukkitRunnable {
+
+        private final Callback onDone;
+        private final Queue<ChunkLoc> chunks;
+
+        public ChunkRefreshTask(final Callback onDone) {
+            this.onDone = onDone;
+            this.chunks = new LinkedList<>(ResetZone.this.chunks);
+        }
+
+        @Override
+        public void run() {
+            ChunkLoc current = chunks.poll();
+
+            if (current == null) {
+                cancel();
+                task = null;
+
+                arena.setDisabled(false);
+
+                if (onDone != null) {
+                    onDone.call();
                 }
 
-                api.getServer().getOnlinePlayers().forEach(online -> handler.sendChunkUpdate(online, chunk));
+                return;
+            }
 
-                for (final Entity entity : chunk.getEntities()) {
-                    if (config.isRemoveDroppedItems() && entity instanceof Item) {
-                        entity.remove();
-                        continue;
-                    }
+            final Chunk chunk = min.getWorld().getChunkAt(current.x, current.z);
 
-                    if (config.getRemoveEntities().stream().anyMatch(type -> entity.getType().name().equalsIgnoreCase(type))) {
-                        entity.remove();
-                    }
+            if (!chunk.isLoaded()) {
+                return;
+            }
+
+            api.getServer().getOnlinePlayers().stream().filter(player -> player.getWorld().equals(chunk.getWorld())).forEach(online -> handler.sendChunkUpdate(online, chunk));
+
+            for (final Entity entity : chunk.getEntities()) {
+                if (config.isRemoveDroppedItems() && entity instanceof Item) {
+                    entity.remove();
+                    continue;
                 }
-            });
 
-            arena.setDisabled(false);
-
-            if (onDone != null) {
-                onDone.call();
+                if (config.getRemoveEntities().stream().anyMatch(type -> entity.getType().name().equalsIgnoreCase(type))) {
+                    entity.remove();
+                }
             }
         }
     }
