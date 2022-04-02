@@ -88,9 +88,9 @@ public class ResetZone {
         
         if (file.getName().endsWith(".yml")) {
             final FileConfiguration config = YamlConfiguration.loadConfiguration(file);
-            this.file = new File(file.getParent(), arena.getName().toLowerCase() + ".txt");
+            final File newFile = new File(file.getParent(), arena.getName().toLowerCase() + ".txt");
             
-            try (final BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            try (final BufferedWriter writer = new BufferedWriter(new FileWriter(newFile))) {
                 writer.write(config.getString("world"));
                 writer.newLine();
                 writer.write(String.valueOf(config.getInt("min.x")));
@@ -118,6 +118,8 @@ public class ResetZone {
                 }
             }
             
+            file.delete();
+            this.file = newFile;
             extension.info("Converted " + arena.getName().toLowerCase() + ".yml to " + file.getName() + ".");
         }
         
