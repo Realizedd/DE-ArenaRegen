@@ -1,6 +1,10 @@
 package me.realized.de.arenaregen.zone;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,10 +48,10 @@ public class ResetZone {
     @Getter
     private final Arena arena;
     @Getter
-    private final Location min, max;
+    private Location min, max;
 
     private final Map<Position, BlockInfo> blocks = new HashMap<>();
-    private final File file;
+    private File file;
 
     @Getter
     private BukkitRunnable task;
@@ -75,51 +79,70 @@ public class ResetZone {
         );
     }
 
-    ResetZone(final ArenaRegen extension, final Duels api, final Arena arena, final File file) {
+    ResetZone(final ArenaRegen extension, final Duels api, final Arena arena, final File file) throws IOException {
         this.api = api;
         this.handler = extension.getHandler();
         this.config = extension.getConfiguration();
-
-        // TODO Change zone file format to the following:
-        /*
-        -82
-        72
-        -86
-        83
-        142
-        81
-        -34;91;62: STONE;0
-        -34;92;31: STONE;0
-        -34;93;0: STONE;0
-        -34;94;-31: STONE;0
-        */
-        final FileConfiguration config = YamlConfiguration.loadConfiguration(file);
         this.arena = arena;
         this.file = file;
+        
+        if (file.getName().endsWith(".yml")) {
+            final FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+            this.file = new File(file.getParent(), arena.getName().toLowerCase() + ".txt");
+            
+            try (final BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                writer.write(config.getString("world"));
+                writer.newLine();
+                writer.write(String.valueOf(config.getInt("min.x")));
+                writer.newLine();
+                writer.write(String.valueOf(config.getInt("min.y")));
+                writer.newLine();
+                writer.write(String.valueOf(config.getInt("min.z")));
+                writer.newLine();
+                writer.write(String.valueOf(config.getInt("max.x")));
+                writer.newLine();
+                writer.write(String.valueOf(config.getInt("max.y")));
+                writer.newLine();
+                writer.write(String.valueOf(config.getInt("max.z")));
+                writer.newLine();
 
-        final String worldName = config.getString("world");
-        final World world;
+                final ConfigurationSection blocks = config.getConfigurationSection("blocks");
 
-        if (worldName == null || (world = Bukkit.getWorld(worldName)) == null) {
-            throw new NullPointerException("worldName or world is null");
+                if (blocks == null) {
+                    return;
+                }
+    
+                for (String key : blocks.getKeys(false)) {
+                    writer.write(key + ":" + blocks.getString(key));
+                    writer.newLine();
+                }
+            }
+            
+            extension.info("Converted " + arena.getName().toLowerCase() + ".yml to " + file.getName() + ".");
         }
+        
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String worldName = reader.readLine();
+            final World world;
 
-        this.min = new Location(world, config.getInt("min.x"), config.getInt("min.y"), config.getInt("min.z"));
-        this.max = new Location(world, config.getInt("max.x"), config.getInt("max.y"), config.getInt("max.z"));
+            if (worldName == null || (world = Bukkit.getWorld(worldName)) == null) {
+                throw new NullPointerException("worldName or world is null");
+            }
 
-        final ConfigurationSection blocks = config.getConfigurationSection("blocks");
+            this.min = new Location(world, Integer.parseInt(reader.readLine()), Integer.parseInt(reader.readLine()), Integer.parseInt(reader.readLine()));
+            this.max = new Location(world, Integer.parseInt(reader.readLine()), Integer.parseInt(reader.readLine()), Integer.parseInt(reader.readLine()));
 
-        if (blocks == null) {
-            return;
+            String block;
+
+            while ((block = reader.readLine()) != null) {
+                final String[] data = block.split(":");
+                final String[] posData = data[0].split(";");
+                final Position pos = new Position(Integer.parseInt(posData[0]), Integer.parseInt(posData[1]), Integer.parseInt(posData[2]));
+                final String[] blockData = data[1].split(";");
+                final BlockInfo info = new BlockInfo(Material.getMaterial(blockData[0]), Byte.parseByte(blockData[1]));
+                this.blocks.put(pos, info);
+            }
         }
-
-        blocks.getKeys(false).forEach(key -> {
-            final String[] posData = key.split(";");
-            final Position pos = new Position(Integer.parseInt(posData[0]), Integer.parseInt(posData[1]), Integer.parseInt(posData[2]));
-            final String[] blockData = blocks.getString(key).split(";");
-            final BlockInfo info = new BlockInfo(Material.getMaterial(blockData[0]), Byte.parseByte(blockData[1]));
-            this.blocks.put(pos, info);
-        });
     }
 
     public String getName() {

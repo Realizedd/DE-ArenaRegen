@@ -62,12 +62,7 @@ public class ResetZoneManager {
 
         if (files != null) {
             for (final File file : files) {
-                final String name = file.getName();
-
-                if (name.endsWith(".yml")) {
-                    // TODO: convert file from yml to txt
-                }
-
+                final String name = file.getName().substring(0, file.getName().lastIndexOf("."));
                 final Arena arena = arenaManager.get(name);
                 
                 if (arena == null) {
