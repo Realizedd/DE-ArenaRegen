@@ -1,7 +1,6 @@
 package me.realized.de.arenaregen.zone;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,13 +57,13 @@ public class ResetZoneManager {
             folder.mkdir();
         }
 
-        final File[] files = folder.listFiles((dir, name) -> name.endsWith(".yml"));
+        final File[] files = folder.listFiles();
 
         if (files != null) {
             for (final File file : files) {
-                final String name = file.getName().replace(".yml", "");
+                final String name = file.getName().substring(0, file.getName().lastIndexOf("."));
                 final Arena arena = arenaManager.get(name);
-
+                
                 if (arena == null) {
                     file.delete();
                     continue;
@@ -79,19 +78,11 @@ public class ResetZoneManager {
         }
     }
 
-    public void save() {
-        zones.values().forEach(zone -> {
-            if (zone.isResetting()) {
-                zone.getArena().setDisabled(false);
-                zone.getTask().cancel();
-                zone.resetInstant();
-            }
-
-            try {
-                zone.save();
-            } catch (IOException ex) {
-                extension.error("Could not save reset zone '" + zone.getName() + "'!", ex);
-            }
+    public void handleDisable() {
+        zones.values().stream().filter(ResetZone::isResetting).forEach(zone -> {
+            zone.getArena().setDisabled(false);
+            zone.getTask().cancel();
+            zone.resetInstant();
         });
     }
 

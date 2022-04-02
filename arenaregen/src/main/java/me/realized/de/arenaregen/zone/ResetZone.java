@@ -1,6 +1,10 @@
 package me.realized.de.arenaregen.zone;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,10 +48,10 @@ public class ResetZone {
     @Getter
     private final Arena arena;
     @Getter
-    private final Location min, max;
+    private Location min, max;
 
     private final Map<Position, BlockInfo> blocks = new HashMap<>();
-    private final File file;
+    private File file;
 
     @Getter
     private BukkitRunnable task;
@@ -60,7 +64,7 @@ public class ResetZone {
         this.handler = extension.getHandler();
         this.config = extension.getConfiguration();
         this.arena = arena;
-        this.file = new File(folder, arena.getName() + ".yml");
+        this.file = new File(folder, arena.getName() + ".txt");
         this.min = new Location(
             first.getWorld(),
             Math.min(first.getBlockX(), second.getBlockX()),
@@ -73,40 +77,99 @@ public class ResetZone {
             Math.max(first.getBlockY(), second.getBlockY()),
             Math.max(first.getBlockZ(), second.getBlockZ())
         );
+
+        try (final BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write(min.getWorld().getName());
+            writer.newLine();
+            writer.write(String.valueOf(min.getBlockX()));
+            writer.newLine();
+            writer.write(String.valueOf(min.getBlockY()));
+            writer.newLine();
+            writer.write(String.valueOf(min.getBlockZ()));
+            writer.newLine();
+            writer.write(String.valueOf(max.getBlockX()));
+            writer.newLine();
+            writer.write(String.valueOf(max.getBlockY()));
+            writer.newLine();
+            writer.write(String.valueOf(max.getBlockZ()));
+            writer.newLine();
+
+            for (Map.Entry<Position, BlockInfo> entry : blocks.entrySet()) {
+                writer.write(entry.getKey().toString() + ":" + entry.getValue().toString());
+                writer.newLine();
+            }
+        } catch (IOException ex) {
+            extension.error("Could not save reset zone '" + getName()+ "'!", ex);
+        }
     }
 
-    ResetZone(final ArenaRegen extension, final Duels api, final Arena arena, final File file) {
+    ResetZone(final ArenaRegen extension, final Duels api, final Arena arena, File file) throws IOException {
         this.api = api;
         this.handler = extension.getHandler();
         this.config = extension.getConfiguration();
-
-        final FileConfiguration config = YamlConfiguration.loadConfiguration(file);
         this.arena = arena;
         this.file = file;
+        
+        if (file.getName().endsWith(".yml")) {
+            final FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+            final File newFile = new File(file.getParent(), arena.getName().toLowerCase() + ".txt");
+            
+            try (final BufferedWriter writer = new BufferedWriter(new FileWriter(newFile))) {
+                writer.write(config.getString("world"));
+                writer.newLine();
+                writer.write(String.valueOf(config.getInt("min.x")));
+                writer.newLine();
+                writer.write(String.valueOf(config.getInt("min.y")));
+                writer.newLine();
+                writer.write(String.valueOf(config.getInt("min.z")));
+                writer.newLine();
+                writer.write(String.valueOf(config.getInt("max.x")));
+                writer.newLine();
+                writer.write(String.valueOf(config.getInt("max.y")));
+                writer.newLine();
+                writer.write(String.valueOf(config.getInt("max.z")));
+                writer.newLine();
 
-        final String worldName = config.getString("world");
-        final World world;
+                final ConfigurationSection blocks = config.getConfigurationSection("blocks");
 
-        if (worldName == null || (world = Bukkit.getWorld(worldName)) == null) {
-            throw new NullPointerException("worldName or world is null");
+                if (blocks == null) {
+                    return;
+                }
+    
+                for (String key : blocks.getKeys(false)) {
+                    writer.write(key + ":" + blocks.getString(key));
+                    writer.newLine();
+                }
+            }
+            
+            file.delete();
+            extension.info("Converted " + file.getName() + " to " + newFile.getName() + ".");
+
+            this.file = file = newFile;
         }
+        
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String worldName = reader.readLine();
+            final World world;
 
-        this.min = new Location(world, config.getInt("min.x"), config.getInt("min.y"), config.getInt("min.z"));
-        this.max = new Location(world, config.getInt("max.x"), config.getInt("max.y"), config.getInt("max.z"));
+            if (worldName == null || (world = Bukkit.getWorld(worldName)) == null) {
+                throw new NullPointerException("worldName or world is null");
+            }
 
-        final ConfigurationSection blocks = config.getConfigurationSection("blocks");
+            this.min = new Location(world, Integer.parseInt(reader.readLine()), Integer.parseInt(reader.readLine()), Integer.parseInt(reader.readLine()));
+            this.max = new Location(world, Integer.parseInt(reader.readLine()), Integer.parseInt(reader.readLine()), Integer.parseInt(reader.readLine()));
 
-        if (blocks == null) {
-            return;
+            String block;
+
+            while ((block = reader.readLine()) != null) {
+                final String[] data = block.split(":");
+                final String[] posData = data[0].split(";");
+                final Position pos = new Position(Integer.parseInt(posData[0]), Integer.parseInt(posData[1]), Integer.parseInt(posData[2]));
+                final String[] blockData = data[1].split(";");
+                final BlockInfo info = new BlockInfo(Material.getMaterial(blockData[0]), Byte.parseByte(blockData[1]));
+                this.blocks.put(pos, info);
+            }
         }
-
-        blocks.getKeys(false).forEach(key -> {
-            final String[] posData = key.split(";");
-            final Position pos = new Position(Integer.parseInt(posData[0]), Integer.parseInt(posData[1]), Integer.parseInt(posData[2]));
-            final String[] blockData = blocks.getString(key).split(";");
-            final BlockInfo info = new BlockInfo(Material.getMaterial(blockData[0]), Byte.parseByte(blockData[1]));
-            this.blocks.put(pos, info);
-        });
     }
 
     public String getName() {
@@ -115,23 +178,6 @@ public class ResetZone {
 
     public int getTotalBlocks() {
         return blocks.size();
-    }
-
-    void save() throws IOException {
-        if (!file.exists()) {
-            file.createNewFile();
-        }
-
-        final FileConfiguration config = YamlConfiguration.loadConfiguration(file);
-        config.set("world", min.getWorld().getName());
-        config.set("min.x", min.getBlockX());
-        config.set("min.y", min.getBlockY());
-        config.set("min.z", min.getBlockZ());
-        config.set("max.x", max.getBlockX());
-        config.set("max.y", max.getBlockY());
-        config.set("max.z", max.getBlockZ());
-        blocks.forEach((position, info) -> config.set("blocks." + position.toString(), info.toString()));
-        config.save(file);
     }
 
     void delete() {
@@ -307,32 +353,56 @@ public class ResetZone {
             }
 
             cancel();
-            task = null;
-            chunks.forEach(chunkLoc -> {
-                final Chunk chunk = min.getWorld().getChunkAt(chunkLoc.x, chunkLoc.z);
+            task = new ChunkRefreshTask(onDone);
+            task.runTaskTimer(api, 1L, 1L);
+        }
+    }
 
-                if (!chunk.isLoaded()) {
-                    return;
+
+    public class ChunkRefreshTask extends BukkitRunnable {
+
+        private final Callback onDone;
+        private final Queue<ChunkLoc> chunks;
+
+        public ChunkRefreshTask(final Callback onDone) {
+            this.onDone = onDone;
+            this.chunks = new LinkedList<>(ResetZone.this.chunks);
+        }
+
+        @Override
+        public void run() {
+            ChunkLoc current = chunks.poll();
+
+            if (current == null) {
+                cancel();
+                task = null;
+
+                arena.setDisabled(false);
+
+                if (onDone != null) {
+                    onDone.call();
                 }
 
-                api.getServer().getOnlinePlayers().forEach(online -> handler.sendChunkUpdate(online, chunk));
+                return;
+            }
 
-                for (final Entity entity : chunk.getEntities()) {
-                    if (config.isRemoveDroppedItems() && entity instanceof Item) {
-                        entity.remove();
-                        continue;
-                    }
+            final Chunk chunk = min.getWorld().getChunkAt(current.x, current.z);
 
-                    if (config.getRemoveEntities().stream().anyMatch(type -> entity.getType().name().equalsIgnoreCase(type))) {
-                        entity.remove();
-                    }
+            if (!chunk.isLoaded()) {
+                return;
+            }
+
+            api.getServer().getOnlinePlayers().stream().filter(player -> player.getWorld().equals(chunk.getWorld())).forEach(online -> handler.sendChunkUpdate(online, chunk));
+
+            for (final Entity entity : chunk.getEntities()) {
+                if (config.isRemoveDroppedItems() && entity instanceof Item) {
+                    entity.remove();
+                    continue;
                 }
-            });
 
-            arena.setDisabled(false);
-
-            if (onDone != null) {
-                onDone.call();
+                if (config.getRemoveEntities().stream().anyMatch(type -> entity.getType().name().equalsIgnoreCase(type))) {
+                    entity.remove();
+                }
             }
         }
     }
