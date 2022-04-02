@@ -70,7 +70,7 @@ public class ArenaRegen extends DuelsExtension {
 
     @Override
     public void onDisable() {
-        zoneManager.save();
+        zoneManager.handleDisable();
     }
 
     @Override

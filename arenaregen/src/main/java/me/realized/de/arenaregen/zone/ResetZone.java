@@ -64,7 +64,7 @@ public class ResetZone {
         this.handler = extension.getHandler();
         this.config = extension.getConfiguration();
         this.arena = arena;
-        this.file = new File(folder, arena.getName() + ".yml");
+        this.file = new File(folder, arena.getName() + ".txt");
         this.min = new Location(
             first.getWorld(),
             Math.min(first.getBlockX(), second.getBlockX()),
@@ -77,6 +77,30 @@ public class ResetZone {
             Math.max(first.getBlockY(), second.getBlockY()),
             Math.max(first.getBlockZ(), second.getBlockZ())
         );
+
+        try (final BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write(min.getWorld().getName());
+            writer.newLine();
+            writer.write(String.valueOf(min.getBlockX()));
+            writer.newLine();
+            writer.write(String.valueOf(min.getBlockY()));
+            writer.newLine();
+            writer.write(String.valueOf(min.getBlockZ()));
+            writer.newLine();
+            writer.write(String.valueOf(max.getBlockX()));
+            writer.newLine();
+            writer.write(String.valueOf(max.getBlockY()));
+            writer.newLine();
+            writer.write(String.valueOf(max.getBlockZ()));
+            writer.newLine();
+
+            for (Map.Entry<Position, BlockInfo> entry : blocks.entrySet()) {
+                writer.write(entry.getKey().toString() + ":" + entry.getValue().toString());
+                writer.newLine();
+            }
+        } catch (IOException ex) {
+            extension.error("Could not save reset zone '" + getName()+ "'!", ex);
+        }
     }
 
     ResetZone(final ArenaRegen extension, final Duels api, final Arena arena, File file) throws IOException {
@@ -120,7 +144,7 @@ public class ResetZone {
             
             file.delete();
             extension.info("Converted " + file.getName() + " to " + newFile.getName() + ".");
-            
+
             this.file = file = newFile;
         }
         
@@ -154,23 +178,6 @@ public class ResetZone {
 
     public int getTotalBlocks() {
         return blocks.size();
-    }
-
-    void save() throws IOException {
-        if (!file.exists()) {
-            file.createNewFile();
-        }
-
-        final FileConfiguration config = YamlConfiguration.loadConfiguration(file);
-        config.set("world", min.getWorld().getName());
-        config.set("min.x", min.getBlockX());
-        config.set("min.y", min.getBlockY());
-        config.set("min.z", min.getBlockZ());
-        config.set("max.x", max.getBlockX());
-        config.set("max.y", max.getBlockY());
-        config.set("max.z", max.getBlockZ());
-        blocks.forEach((position, info) -> config.set("blocks." + position.toString(), info.toString()));
-        config.save(file);
     }
 
     void delete() {

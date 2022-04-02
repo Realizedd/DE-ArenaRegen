@@ -79,19 +79,11 @@ public class ResetZoneManager {
         }
     }
 
-    public void save() {
-        zones.values().forEach(zone -> {
-            if (zone.isResetting()) {
-                zone.getArena().setDisabled(false);
-                zone.getTask().cancel();
-                zone.resetInstant();
-            }
-
-            try {
-                zone.save();
-            } catch (IOException ex) {
-                extension.error("Could not save reset zone '" + zone.getName() + "'!", ex);
-            }
+    public void handleDisable() {
+        zones.values().stream().filter(ResetZone::isResetting).forEach(zone -> {
+            zone.getArena().setDisabled(false);
+            zone.getTask().cancel();
+            zone.resetInstant();
         });
     }
 
