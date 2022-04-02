@@ -79,7 +79,7 @@ public class ResetZone {
         );
     }
 
-    ResetZone(final ArenaRegen extension, final Duels api, final Arena arena, final File file) throws IOException {
+    ResetZone(final ArenaRegen extension, final Duels api, final Arena arena, File file) throws IOException {
         this.api = api;
         this.handler = extension.getHandler();
         this.config = extension.getConfiguration();
@@ -119,8 +119,9 @@ public class ResetZone {
             }
             
             file.delete();
-            this.file = newFile;
-            extension.info("Converted " + arena.getName().toLowerCase() + ".yml to " + file.getName() + ".");
+            extension.info("Converted " + file.getName() + " to " + newFile.getName() + ".");
+            
+            this.file = file = newFile;
         }
         
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
