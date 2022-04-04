@@ -6,7 +6,7 @@ import org.bukkit.Bukkit;
 public final class CompatUtil {
 
     private static final int SUB_VERSION;
-    private static final boolean PAPER_SPIGOT;
+    private static final boolean PAPER_SPIGOT, PURPUR_SPIGOT;
 
     @Getter
     private static final boolean BLOCK_EXPLODE_EVENT;
@@ -15,6 +15,7 @@ public final class CompatUtil {
         final String packageName = Bukkit.getServer().getClass().getPackage().getName();
         SUB_VERSION = NumberUtil.parseInt(packageName.substring(packageName.lastIndexOf('.') + 1).split("_")[1]).orElse(0);
         PAPER_SPIGOT = ReflectionUtil.getClassUnsafe("com.destroystokyo.paper.PaperConfig") != null || ReflectionUtil.getClassUnsafe("org.github.paperspigot.PaperSpigotConfig") != null;
+        PURPUR_SPIGOT = ReflectionUtil.getClassUnsafe("org.purpurmc.purpur.PurpurConfig") != null;
         BLOCK_EXPLODE_EVENT = ReflectionUtil.getClassUnsafe("org.bukkit.event.block.BlockExplodeEvent") != null;
     }
 
@@ -34,6 +35,10 @@ public final class CompatUtil {
 
     public static boolean isPaper() {
         return PAPER_SPIGOT;
+    }
+
+    public static boolean isPurpur() {
+        return PURPUR_SPIGOT;
     }
 
     public static boolean hasBlockExplodeEvent() {

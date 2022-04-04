@@ -120,7 +120,7 @@ public class ResetZoneManager {
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
         public void on(final ChunkUnloadEvent event) {
-            if (zones.values().stream().anyMatch(zone -> zone.isResetting() && zone.isCached(event.getChunk()))) {
+            if (!CompatUtil.isPurpur() && zones.values().stream().anyMatch(zone -> zone.isResetting() && zone.isCached(event.getChunk()))) {
                 event.setCancelled(true);
             }
         }
