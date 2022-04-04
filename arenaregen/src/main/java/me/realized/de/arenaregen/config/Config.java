@@ -39,7 +39,7 @@ public class Config {
         this.blocksPerTick = config.getInt("blocks-per-tick", 25);
         blockResetHandlerVersion = config.getString("block-reset-handler-version", "auto");
         this.removeDroppedItems = config.getBoolean("remove-dropped-items", true);
-        this.removeEntities = config.isList("remove-entities") ? config.getStringList("remove-entities") : Collections.emptyList();
+        this.removeEntities = config.isList("remove-entities") ? config.getStringList("remove-entities") : Collections.singletonList("ENDER_CRYSTAL");
         this.preventBlockBurn = config.getBoolean("prevent-block-burn", true);
         this.preventBlockMelt = config.getBoolean("prevent-block-melt", true);
         this.preventBlockExplode = config.getBoolean("prevent-block-explode", true);

@@ -285,7 +285,7 @@ public class ResetZone {
 
         private final Callback onDone;
         private final Queue<Pair<Block, BlockInfo>> changed = new LinkedList<>();
-        private int x = min.getBlockX();
+        private int y = max.getBlockY();
 
         public IndexTask(final Callback onDone) {
             this.onDone = onDone;
@@ -293,13 +293,28 @@ public class ResetZone {
 
         @Override
         public void run() {
-            for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
+            for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
                 for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
                     final Block block = min.getWorld().getBlockAt(x, y, z);
                     final Position position = new Position(block);
                     final BlockInfo info = blocks.get(position);
+                    final Chunk chunk = block.getChunk();
+                    final ChunkLoc chunkLoc = new ChunkLoc(chunk);
 
-                    chunks.add(new ChunkLoc(block.getChunk()));
+                    if (!chunks.contains(chunkLoc)) {
+                        chunks.add(new ChunkLoc(block.getChunk()));
+                                    
+                        for (final Entity entity : chunk.getEntities()) {
+                            if (config.isRemoveDroppedItems() && entity instanceof Item) {
+                                entity.remove();
+                                continue;
+                            }
+
+                            if (config.getRemoveEntities().stream().anyMatch(type -> entity.getType().name().equalsIgnoreCase(type))) {
+                                entity.remove();
+                            }
+                        }
+                    }
 
                     if (info == null) {
                         // If no stored information is available (= air) but block is not air, set to air
@@ -316,9 +331,9 @@ public class ResetZone {
                 }
             }
 
-            x++;
+            y--;
 
-            if (x > max.getBlockX()) {
+            if (y < min.getBlockY()) {
                 cancel();
                 task = new ResetTask(onDone, changed);
                 task.runTaskTimer(api, 1L, 1L);
@@ -393,17 +408,6 @@ public class ResetZone {
             }
 
             api.getServer().getOnlinePlayers().stream().filter(player -> player.getWorld().equals(chunk.getWorld())).forEach(online -> handler.sendChunkUpdate(online, chunk));
-
-            for (final Entity entity : chunk.getEntities()) {
-                if (config.isRemoveDroppedItems() && entity instanceof Item) {
-                    entity.remove();
-                    continue;
-                }
-
-                if (config.getRemoveEntities().stream().anyMatch(type -> entity.getType().name().equalsIgnoreCase(type))) {
-                    entity.remove();
-                }
-            }
         }
     }
 }
