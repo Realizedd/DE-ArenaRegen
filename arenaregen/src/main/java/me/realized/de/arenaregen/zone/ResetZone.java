@@ -112,7 +112,7 @@ public class ResetZone {
         
         if (file.getName().endsWith(".yml")) {
             final FileConfiguration config = YamlConfiguration.loadConfiguration(file);
-            final File newFile = new File(file.getParent(), arena.getName().toLowerCase() + ".txt");
+            final File newFile = new File(file.getParent(), arena.getName() + ".txt");
             
             try (final BufferedWriter writer = new BufferedWriter(new FileWriter(newFile))) {
                 writer.write(config.getString("world"));
