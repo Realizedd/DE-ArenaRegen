@@ -302,7 +302,7 @@ public class ResetZone {
                     final ChunkLoc chunkLoc = new ChunkLoc(chunk);
 
                     if (!chunks.contains(chunkLoc)) {
-                        chunks.add(new ChunkLoc(block.getChunk()));
+                        chunks.add(chunkLoc);
                                     
                         for (final Entity entity : chunk.getEntities()) {
                             if (config.isRemoveDroppedItems() && entity instanceof Item) {
