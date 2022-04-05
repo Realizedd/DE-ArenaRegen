@@ -384,9 +384,9 @@ public class ResetZone {
                 for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
                     final Block block = min.getWorld().getBlockAt(x, y, z);
                     
-                    if (block.getType() == Material.AIR || BlockUtil.isSurrounded(block)) {
-                        continue;
-                    }
+                    // if (block.getType() == Material.AIR || BlockUtil.isSurrounded(block)) {
+                    //     continue;
+                    // }
 
                     handler.updateLighting(block);
                 }
