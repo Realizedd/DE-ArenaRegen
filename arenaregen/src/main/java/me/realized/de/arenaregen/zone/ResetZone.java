@@ -6,24 +6,17 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
-import lombok.Getter;
-import me.realized.de.arenaregen.ArenaRegen;
-import me.realized.de.arenaregen.config.Config;
-import me.realized.de.arenaregen.nms.NMS;
-import me.realized.de.arenaregen.util.BlockInfo;
-import me.realized.de.arenaregen.util.Callback;
-import me.realized.de.arenaregen.util.Pair;
-import me.realized.de.arenaregen.util.Position;
-import me.realized.duels.api.Duels;
-import me.realized.duels.api.arena.Arena;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -36,6 +29,17 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import lombok.Getter;
+import me.realized.de.arenaregen.ArenaRegen;
+import me.realized.de.arenaregen.config.Config;
+import me.realized.de.arenaregen.nms.NMS;
+import me.realized.de.arenaregen.util.BlockInfo;
+import me.realized.de.arenaregen.util.Callback;
+import me.realized.de.arenaregen.util.Pair;
+import me.realized.de.arenaregen.util.Position;
+import me.realized.duels.api.Duels;
+import me.realized.duels.api.arena.Arena;
 
 public class ResetZone {
 
@@ -58,6 +62,9 @@ public class ResetZone {
 
     @Getter
     private Set<ChunkLoc> chunks = new HashSet<>();
+
+    @Getter
+    private List<Entity> spawnedEntities = new ArrayList<>();
 
     ResetZone(final ArenaRegen extension, final Duels api, final Arena arena, final File folder, final Location first, final Location second) {
         this.api = api;
@@ -242,7 +249,7 @@ public class ResetZone {
         task.runTaskTimer(api, 1L, 1L);
     }
 
-    private boolean contains(final Location location) {
+    public boolean contains(final Location location) {
         return min.getWorld().equals(location.getWorld())
             && min.getBlockX() <= location.getBlockX() && location.getBlockX() <= max.getBlockX()
             && min.getBlockY() <= location.getBlockY() && location.getBlockY() <= max.getBlockY()
@@ -298,24 +305,8 @@ public class ResetZone {
                     final Block block = min.getWorld().getBlockAt(x, y, z);
                     final Position position = new Position(block);
                     final BlockInfo info = blocks.get(position);
-                    final Chunk chunk = block.getChunk();
-                    final ChunkLoc chunkLoc = new ChunkLoc(chunk);
-
-                    if (!chunks.contains(chunkLoc)) {
-                        chunks.add(chunkLoc);
-                                    
-                        for (final Entity entity : chunk.getEntities()) {
-                            if (config.isRemoveDroppedItems() && entity instanceof Item) {
-                                entity.remove();
-                                continue;
-                            }
-
-                            if (config.getRemoveEntities().stream().anyMatch(type -> entity.getType().name().equalsIgnoreCase(type))) {
-                                entity.remove();
-                            }
-                        }
-                    }
-
+                    chunks.add(new ChunkLoc(block.getChunk()));
+                    
                     if (info == null) {
                         // If no stored information is available (= air) but block is not air, set to air
                         if (block.getType() != Material.AIR) {

@@ -15,6 +15,8 @@ import me.realized.duels.api.arena.ArenaManager;
 import me.realized.duels.api.event.arena.ArenaRemoveEvent;
 import me.realized.duels.api.event.match.MatchEndEvent;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -27,6 +29,8 @@ import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
 import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 
 public class ResetZoneManager {
@@ -126,6 +130,21 @@ public class ResetZoneManager {
         }
 
         @EventHandler
+        public void on(final PlayerDeathEvent event) {
+            final Arena arena = arenaManager.get(event.getEntity());
+            final ResetZone zone;
+
+            if (arena == null || (zone = get(arena.getName())) == null) {
+                return;
+            }
+
+            zone.getSpawnedEntities().removeIf(entity -> {
+                entity.remove();
+                return true;
+            });
+        }
+
+        @EventHandler
         public void on(final MatchEndEvent event) {
             final Arena arena = event.getMatch().getArena();
             final ResetZone zone = get(arena.getName());
@@ -134,6 +153,7 @@ public class ResetZoneManager {
                 return;
             }
 
+            zone.getSpawnedEntities().clear();
             zone.reset(null);
         }
 
@@ -206,6 +226,26 @@ public class ResetZoneManager {
             }
 
             event.setCancelled(true);
+        }
+
+        @EventHandler(priority = EventPriority. HIGHEST, ignoreCancelled = true)
+        public void on(final EntitySpawnEvent event) {
+            if (config.getRemoveEntities().isEmpty()) {
+                return;
+            }
+
+            final Entity entity = event.getEntity();
+
+            if (!(entity instanceof Item) && !config.getRemoveEntities().contains(entity.getType().name().toUpperCase())) {
+                return;
+            }
+
+            for (final ResetZone zone : getZones()) {
+                if (zone.contains(event.getLocation())) {
+                    zone.getSpawnedEntities().add(entity);
+                    break;
+                }
+            }
         }
     }
 
