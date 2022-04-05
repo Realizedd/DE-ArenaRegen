@@ -1,21 +1,18 @@
 package me.realized.de.arenaregen.nms.v1_18_R1;
 
-import org.bukkit.Chunk;
+import me.realized.de.arenaregen.nms.NMS;
+import net.minecraft.core.BlockPosition;
+import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
+import net.minecraft.world.level.World;
+import net.minecraft.world.level.block.state.IBlockData;
+import net.minecraft.world.level.chunk.Chunk;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_18_R1.CraftChunk;
 import org.bukkit.craftbukkit.v1_18_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_18_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
-
-import me.realized.de.arenaregen.nms.NMS;
-import net.minecraft.world.level.chunk.Chunk;
-import net.minecraft.world.level.World;
-import net.minecraft.core.BlockPosition;
-import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
-import net.minecraft.world.level.block.state.IBlockData;
 
 public class NMSHandler implements NMS {
 
