@@ -34,7 +34,9 @@ import lombok.Getter;
 import me.realized.de.arenaregen.ArenaRegen;
 import me.realized.de.arenaregen.config.Config;
 import me.realized.de.arenaregen.nms.NMS;
+import me.realized.de.arenaregen.nms.fallback.NMSHandler;
 import me.realized.de.arenaregen.util.BlockInfo;
+import me.realized.de.arenaregen.util.BlockUtil;
 import me.realized.de.arenaregen.util.Callback;
 import me.realized.de.arenaregen.util.Pair;
 import me.realized.de.arenaregen.util.Position;
@@ -292,7 +294,7 @@ public class ResetZone {
 
         private final Callback onDone;
         private final Queue<Pair<Block, BlockInfo>> changed = new LinkedList<>();
-        private int y = max.getBlockY();
+        private int x = min.getBlockX();
 
         public IndexTask(final Callback onDone) {
             this.onDone = onDone;
@@ -300,13 +302,14 @@ public class ResetZone {
 
         @Override
         public void run() {
-            for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
+            for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
                 for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
                     final Block block = min.getWorld().getBlockAt(x, y, z);
                     final Position position = new Position(block);
                     final BlockInfo info = blocks.get(position);
+
                     chunks.add(new ChunkLoc(block.getChunk()));
-                    
+
                     if (info == null) {
                         // If no stored information is available (= air) but block is not air, set to air
                         if (block.getType() != Material.AIR) {
@@ -322,9 +325,9 @@ public class ResetZone {
                 }
             }
 
-            y--;
+            x++;
 
-            if (y < min.getBlockY()) {
+            if (x > max.getBlockX()) {
                 cancel();
                 task = new ResetTask(onDone, changed);
                 task.runTaskTimer(api, 1L, 1L);
@@ -359,8 +362,43 @@ public class ResetZone {
             }
 
             cancel();
-            task = new ChunkRefreshTask(onDone);
+
+            // Skip relighting if using fallback handler
+            task = handler instanceof NMSHandler ? new ChunkRefreshTask(onDone) : new RelightTask(onDone);
             task.runTaskTimer(api, 1L, 1L);
+        }
+    }
+
+    public class RelightTask extends BukkitRunnable {
+
+        private final Callback onDone;
+        private int x = min.getBlockX();
+
+        public RelightTask(final Callback onDone) {
+            this.onDone = onDone;
+        }
+
+        @Override
+        public void run() {
+            for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
+                for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
+                    final Block block = min.getWorld().getBlockAt(x, y, z);
+                    
+                    if (block.getType() == Material.AIR || BlockUtil.isSurrounded(block)) {
+                        continue;
+                    }
+
+                    handler.updateLighting(block);
+                }
+            }
+
+            x++;
+
+            if (x > max.getBlockX()) {
+                cancel();
+                task = new ChunkRefreshTask(onDone);
+                task.runTaskTimer(api, 1L, 1L);
+            }
         }
     }
 

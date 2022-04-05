@@ -11,4 +11,6 @@ public interface NMS {
 
     void setBlockFast(final Block bukkitBlock, final Material material, final int data);
 
+    void updateLighting(final Block bukkitBlock);
+
 }

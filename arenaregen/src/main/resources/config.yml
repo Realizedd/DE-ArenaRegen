@@ -3,7 +3,7 @@
 selecting-tool: IRON_HOE
 
 # Blocks to reset per tick.
-blocks-per-tick: 25
+blocks-per-tick: 1000
 
 # Allow breaking blocks in the reset zone that is not placed by a player in match.
 # default: false
