@@ -11,6 +11,8 @@ import org.bukkit.craftbukkit.v1_18_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 
 import me.realized.de.arenaregen.nms.NMS;
+import net.minecraft.world.level.chunk.Chunk;
+import net.minecraft.world.level.World;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.world.level.block.state.IBlockData;
