@@ -1,4 +1,4 @@
-package me.realized.de.arenaregen.nms.v1_18_R1;
+package me.realized.de.arenaregen.nms.v1_18_R2;
 
 import me.realized.de.arenaregen.nms.NMS;
 import net.minecraft.core.BlockPosition;
