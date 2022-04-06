@@ -364,7 +364,11 @@ public class ResetZone {
             cancel();
 
             // Skip relighting if using fallback handler
-            task = handler instanceof NMSHandler ? new ChunkRefreshTask(onDone) : new RelightTask(onDone);
+            if (handler instanceof NMSHandler) {
+                return;
+            }
+
+            task = new RelightTask(onDone);
             task.runTaskTimer(api, 1L, 1L);
         }
     }
