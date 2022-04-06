@@ -11,7 +11,7 @@ allow-arena-block-break: false
 
 # Allow breaking blocks in the reset zone that is not placed by a player in match.
 # default: auto
-# available: [auto, fallback, v1_8_R3, v1_8_R3_paper, v1_12_R1, v1_14_R1, v1_15_R1, v1_16_R3, v1_17_R1, v1_18_R1]
+# available: [auto, fallback, v1_8_R3, v1_8_R3_paper, v1_12_R1, v1_14_R1, v1_15_R1, v1_16_R3, v1_17_R1, v1_18_R1, v1_18_R2]
 block-reset-handler-version: auto
 
 # Remove dropped items in the reset zone when the match ends.

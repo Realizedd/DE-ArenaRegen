@@ -130,21 +130,6 @@ public class ResetZoneManager {
         }
 
         @EventHandler
-        public void on(final PlayerDeathEvent event) {
-            final Arena arena = arenaManager.get(event.getEntity());
-            final ResetZone zone;
-
-            if (arena == null || (zone = get(arena.getName())) == null) {
-                return;
-            }
-
-            zone.getSpawnedEntities().removeIf(entity -> {
-                entity.remove();
-                return true;
-            });
-        }
-
-        @EventHandler
         public void on(final MatchEndEvent event) {
             final Arena arena = event.getMatch().getArena();
             final ResetZone zone = get(arena.getName());
@@ -152,7 +137,11 @@ public class ResetZoneManager {
             if (zone == null) {
                 return;
             }
-
+            
+            for (final Entity entity : zone.getSpawnedEntities()) {
+                entity.remove();
+            }
+            
             zone.getSpawnedEntities().clear();
             zone.reset(null);
         }
