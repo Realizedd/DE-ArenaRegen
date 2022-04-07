@@ -30,7 +30,6 @@ import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
 import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 
 public class ResetZoneManager {
@@ -52,10 +51,6 @@ public class ResetZoneManager {
         this.lang = extension.getLang();
         this.folder = new File(extension.getDataFolder(), "zones");
         api.registerListener(new ResetZoneListener());
-
-        if (CompatUtil.hasBlockExplodeEvent()) {
-            api.registerListener(new BlockExplodeListener());
-        }
 
         if (!folder.exists()) {
             folder.mkdir();
@@ -100,7 +95,6 @@ public class ResetZoneManager {
         }
 
         final ResetZone zone = new ResetZone(extension, api, arena, folder, selection.getFirst(), selection.getSecond());
-        zone.loadBlocks();
         zones.put(arena.getName(), zone);
         return true;
     }
@@ -236,10 +230,7 @@ public class ResetZoneManager {
                 }
             }
         }
-    }
-
-    private class BlockExplodeListener implements Listener {
-
+        
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
         public void on(final BlockExplodeEvent event) {
             if (!config.isPreventBlockExplode() || event.blockList().stream().allMatch(block -> zones.values().stream().noneMatch(zone -> zone.isCached(block)))) {

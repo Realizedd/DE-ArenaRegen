@@ -2,6 +2,13 @@
 # default: IRON_HOE
 selecting-tool: IRON_HOE
 
+experimental:
+  # If enabled, the extension will track block changes made by players mid match instead of scanning
+  # the entire arena after the match to locate the block changes. While much more efficient, this method
+  # is unable to detect block changes caused by other plugins. If you're using such a plugin, avoid this option!
+  # default: false
+  track-block-changes: false
+
 # Blocks to reset per tick.
 blocks-per-tick: 1000
 
