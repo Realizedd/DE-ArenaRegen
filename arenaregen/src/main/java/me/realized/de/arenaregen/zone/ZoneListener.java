@@ -32,10 +32,10 @@ public class ZoneListener implements Listener {
     private final Lang lang;
     private final ZoneManager zoneManager;
 
-    public ZoneListener(final ArenaRegen extension) {
+    public ZoneListener(final ArenaRegen extension, final ZoneManager zoneManager) {
         this.config = extension.getConfiguration();
         this.lang = extension.getLang();
-        this.zoneManager = extension.getZoneManager();
+        this.zoneManager = zoneManager;
     }
     
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

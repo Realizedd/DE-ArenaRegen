@@ -28,7 +28,7 @@ public class ZoneManager {
         this.api = api;
         this.arenaManager = api.getArenaManager();
         this.folder = new File(extension.getDataFolder(), "zones");
-        api.registerListener(new ZoneListener(extension));
+        api.registerListener(new ZoneListener(extension, this));
 
         if (!folder.exists()) {
             folder.mkdir();
