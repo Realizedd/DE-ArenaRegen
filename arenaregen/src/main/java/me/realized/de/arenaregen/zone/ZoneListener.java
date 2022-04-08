@@ -12,8 +12,10 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockFadeEvent;
+import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
+import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
@@ -45,6 +47,7 @@ public class ZoneListener implements Listener {
         }
     }
 
+    
     @EventHandler(priority = EventPriority. HIGHEST, ignoreCancelled = true)
     public void on(final EntitySpawnEvent event) {
         if (config.getRemoveEntities().isEmpty()) {
@@ -65,6 +68,7 @@ public class ZoneListener implements Listener {
         }
     }
 
+
     @EventHandler
     public void on(final MatchEndEvent event) {
         final Arena arena = event.getMatch().getArena();
@@ -82,10 +86,12 @@ public class ZoneListener implements Listener {
         zone.reset();
     }
 
+
     @EventHandler
     public void on(final ArenaRemoveEvent event) {
         zoneManager.remove(event.getArena().getName());
     }
+
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void on(final BlockBreakEvent event) {
@@ -109,6 +115,7 @@ public class ZoneListener implements Listener {
         lang.sendMessage(player, "ERROR.cancel-arena-block-break");
     }
 
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void on(final BlockPlaceEvent event) {
         if (!config.isTrackBlockChanges()) {
@@ -124,6 +131,7 @@ public class ZoneListener implements Listener {
 
         zone.track(event.getBlock());
     }
+
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void on(final BlockFadeEvent event) {
@@ -151,6 +159,7 @@ public class ZoneListener implements Listener {
         event.setCancelled(true);
     }
 
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void on(final BlockBurnEvent event) {
         final Block block = event.getBlock();
@@ -171,6 +180,7 @@ public class ZoneListener implements Listener {
         event.setCancelled(true);
     }
 
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void on(final EntityExplodeEvent event) {
         final Zone zone = zoneManager.get(event.getEntity().getLocation().getBlock());
@@ -190,6 +200,7 @@ public class ZoneListener implements Listener {
         event.setCancelled(true);
     }
 
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void on(final BlockExplodeEvent event) {
         final Block block = event.getBlock();
@@ -204,6 +215,27 @@ public class ZoneListener implements Listener {
         }
 
         if (!config.isPreventBlockExplode()) {
+            return;
+        }
+
+        event.setCancelled(true);
+    }
+
+    
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void on(final BlockIgniteEvent event) {
+        final Block block = event.getBlock();
+        final Zone zone = zoneManager.get(block);
+
+        if (zone == null) {
+            return;
+        }
+
+        if (config.isTrackBlockChanges()) {
+            zone.track(block);
+        }
+        
+        if (!config.isPreventFireSpread() || event.getCause() != IgniteCause.SPREAD || !zone.isCached(block)) {
             return;
         }
 
