@@ -10,7 +10,7 @@ experimental:
   track-block-changes: false
 
 # Blocks to reset per tick.
-blocks-per-tick: 1000
+blocks-per-tick: 100
 
 # Allow breaking blocks in the reset zone that is not placed by a player in match.
 # default: false

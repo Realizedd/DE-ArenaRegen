@@ -7,7 +7,7 @@ import org.bukkit.block.Block;
 import me.realized.de.arenaregen.ArenaRegen;
 import me.realized.de.arenaregen.util.BlockUtil;
 import me.realized.de.arenaregen.util.Callback;
-import me.realized.de.arenaregen.zone.ResetZone;
+import me.realized.de.arenaregen.zone.Zone;
 import me.realized.de.arenaregen.zone.task.Task;
 
 public class RelightBlocksTask extends Task {
@@ -16,7 +16,7 @@ public class RelightBlocksTask extends Task {
 
     private int x;
 
-    public RelightBlocksTask(final ArenaRegen extension, final ResetZone zone, final Callback onDone) {
+    public RelightBlocksTask(final ArenaRegen extension, final Zone zone, final Callback onDone) {
         super(extension, zone, onDone);
         this.min = zone.getMin();
         this.max = zone.getMax();

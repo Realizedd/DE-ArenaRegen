@@ -12,7 +12,7 @@ import me.realized.de.arenaregen.util.BlockInfo;
 import me.realized.de.arenaregen.util.Callback;
 import me.realized.de.arenaregen.util.Pair;
 import me.realized.de.arenaregen.util.Position;
-import me.realized.de.arenaregen.zone.ResetZone;
+import me.realized.de.arenaregen.zone.Zone;
 import me.realized.de.arenaregen.zone.task.Task;
 
 public class ScanBlocksTask extends Task {
@@ -23,7 +23,7 @@ public class ScanBlocksTask extends Task {
 
     private int x;
 
-    public ScanBlocksTask(final ArenaRegen extension, final ResetZone zone, final Callback onDone) {
+    public ScanBlocksTask(final ArenaRegen extension, final Zone zone, final Callback onDone) {
         super(extension, zone, onDone);
         this.min = zone.getMin();
         this.max = zone.getMax();

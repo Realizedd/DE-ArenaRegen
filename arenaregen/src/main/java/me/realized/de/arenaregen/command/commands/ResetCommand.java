@@ -2,7 +2,7 @@ package me.realized.de.arenaregen.command.commands;
 
 import me.realized.de.arenaregen.ArenaRegen;
 import me.realized.de.arenaregen.command.ARCommand;
-import me.realized.de.arenaregen.zone.ResetZone;
+import me.realized.de.arenaregen.zone.Zone;
 import me.realized.duels.api.Duels;
 import me.realized.duels.api.arena.Arena;
 import org.apache.commons.lang.StringUtils;
@@ -24,7 +24,7 @@ public class ResetCommand extends ARCommand {
             return;
         }
 
-        final ResetZone zone = zoneManager.get(name);
+        final Zone zone = zoneManager.get(name);
 
         if (zone == null) {
             lang.sendMessage(sender, "ERROR.zone-not-found", "name", name);
@@ -34,6 +34,6 @@ public class ResetCommand extends ARCommand {
         lang.sendMessage(sender, "COMMAND.arenaregen.reset.start", "name", name);
         zone.reset(() -> {
             lang.sendMessage(sender, "COMMAND.arenaregen.reset.end", "name", name);
-        });
+        }, true);
     }
 }

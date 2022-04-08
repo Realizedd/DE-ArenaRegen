@@ -12,7 +12,7 @@ public class Config {
     @Getter
     private final Material selectingTool;
     @Getter
-    private final boolean trackBlockChanges; // TODO Implement Track Block Changes
+    private final boolean trackBlockChanges;
     @Getter
     private final int blocksPerTick;
     @Getter

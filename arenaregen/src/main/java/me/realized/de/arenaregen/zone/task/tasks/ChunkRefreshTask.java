@@ -8,14 +8,14 @@ import org.bukkit.Chunk;
 import me.realized.de.arenaregen.ArenaRegen;
 import me.realized.de.arenaregen.util.Callback;
 import me.realized.de.arenaregen.util.ChunkLoc;
-import me.realized.de.arenaregen.zone.ResetZone;
+import me.realized.de.arenaregen.zone.Zone;
 import me.realized.de.arenaregen.zone.task.Task;
 
 public class ChunkRefreshTask extends Task {
 
     private final Queue<ChunkLoc> chunks;
 
-    public ChunkRefreshTask(final ArenaRegen extension, final ResetZone zone, final Callback onDone) {
+    public ChunkRefreshTask(final ArenaRegen extension, final Zone zone, final Callback onDone) {
         super(extension, zone, onDone);
         this.chunks = new LinkedList<>(zone.getChunks());
     }

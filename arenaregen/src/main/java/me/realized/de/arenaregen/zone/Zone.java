@@ -7,10 +7,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
@@ -32,13 +35,15 @@ import me.realized.de.arenaregen.util.BlockInfo;
 import me.realized.de.arenaregen.util.BlockUtil;
 import me.realized.de.arenaregen.util.Callback;
 import me.realized.de.arenaregen.util.ChunkLoc;
+import me.realized.de.arenaregen.util.Pair;
 import me.realized.de.arenaregen.util.Position;
 import me.realized.de.arenaregen.zone.task.Task;
+import me.realized.de.arenaregen.zone.task.tasks.ResetBlocksTask;
 import me.realized.de.arenaregen.zone.task.tasks.ScanBlocksTask;
 import me.realized.duels.api.Duels;
 import me.realized.duels.api.arena.Arena;
 
-public class ResetZone {
+public class Zone {
 
     @Getter
     private final Duels api;
@@ -64,9 +69,12 @@ public class ResetZone {
     private final Set<ChunkLoc> chunks = new HashSet<>();
 
     @Getter
-    private List<Entity> spawnedEntities = new ArrayList<>();
+    private final List<Entity> spawnedEntities = new ArrayList<>();
 
-    ResetZone(final ArenaRegen extension, final Duels api, final Arena arena, final File folder, final Location first, final Location second) {
+    @Getter
+    private final Queue<Pair<Block, BlockInfo>> changes = new LinkedList<>();
+
+    Zone(final ArenaRegen extension, final Duels api, final Arena arena, final File folder, final Location first, final Location second) {
         this.api = api;
         this.extension = extension;
         this.handler = extension.getHandler();
@@ -122,7 +130,7 @@ public class ResetZone {
         loadChunks();
     }
 
-    ResetZone(final ArenaRegen extension, final Duels api, final Arena arena, File file) throws IOException {
+    Zone(final ArenaRegen extension, final Duels api, final Arena arena, File file) throws IOException {
         this.api = api;
         this.extension = extension;
         this.handler = extension.getHandler();
@@ -237,6 +245,7 @@ public class ResetZone {
             }
 
             handler.setBlockFast(block, info.getType(), info.getData());
+            handler.updateLighting(block);
         });
     }
 
@@ -248,9 +257,22 @@ public class ResetZone {
         }
     }
 
-    public void reset(final Callback onDone) {
+    public void reset(final Callback onDone, final boolean hard) {
         arena.setDisabled(true);
-        startTask(new ScanBlocksTask(extension, this, onDone));
+
+        if (config.isTrackBlockChanges() || !hard) {
+            startTask(new ResetBlocksTask(extension, this, onDone, changes));
+        } else {
+            startTask(new ScanBlocksTask(extension, this, onDone));
+        }
+    }
+
+    public void reset(final Callback onDone) {
+        reset(onDone, false);
+    }
+
+    public void reset() {
+        reset(null);
     }
 
     public boolean contains(final Location location) {
@@ -260,11 +282,36 @@ public class ResetZone {
             && min.getBlockZ() <= location.getBlockZ() && location.getBlockZ() <= max.getBlockZ();
     }
 
+    public boolean contains(final Block block) {
+        return contains(block.getLocation());
+    }
+
     boolean isCached(final Block block) {
-        return contains(block.getLocation()) && blocks.containsKey(new Position(block));
+        return contains(block) && blocks.containsKey(new Position(block));
     }
 
     boolean isCached(final Chunk chunk) {
         return chunks.contains(new ChunkLoc(chunk));
+    }
+
+    public void track(final Block block) {
+        final Position position = new Position(block);
+        final BlockInfo info = blocks.get(position);
+
+        if (info == null) {
+            if (block.getType() != Material.AIR) {
+                changes.add(new Pair<>(block, new BlockInfo()));
+            }
+
+            return;
+        } else if (info.matches(block)) {
+            return;
+        }
+
+        changes.add(new Pair<>(block, info));
+    }
+
+    public void track(final Collection<Block> blocks) {
+        blocks.forEach(block -> track(block));
     }
 }

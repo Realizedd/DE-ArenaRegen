@@ -9,7 +9,7 @@ import me.realized.de.arenaregen.nms.fallback.NMSHandler;
 import me.realized.de.arenaregen.selection.SelectionManager;
 import me.realized.de.arenaregen.util.CompatUtil;
 import me.realized.de.arenaregen.util.ReflectionUtil;
-import me.realized.de.arenaregen.zone.ResetZoneManager;
+import me.realized.de.arenaregen.zone.ZoneManager;
 import me.realized.duels.api.extension.DuelsExtension;
 
 public class ArenaRegen extends DuelsExtension {
@@ -23,7 +23,7 @@ public class ArenaRegen extends DuelsExtension {
     @Getter
     private SelectionManager selectionManager;
     @Getter
-    private ResetZoneManager zoneManager;
+    private ZoneManager zoneManager;
 
     @Override
     public void onEnable() {
@@ -34,7 +34,7 @@ public class ArenaRegen extends DuelsExtension {
         info("NMSHandler: Using " + handler.getClass().getName());
 
         this.selectionManager = new SelectionManager(this, api);
-        this.zoneManager = new ResetZoneManager(this, api);
+        this.zoneManager = new ZoneManager(this, api);
         api.registerSubCommand("duels", new ArenaregenCommand(this, api));
     }
 

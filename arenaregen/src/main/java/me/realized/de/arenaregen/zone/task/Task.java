@@ -6,7 +6,7 @@ import me.realized.de.arenaregen.ArenaRegen;
 import me.realized.de.arenaregen.config.Config;
 import me.realized.de.arenaregen.nms.NMS;
 import me.realized.de.arenaregen.util.Callback;
-import me.realized.de.arenaregen.zone.ResetZone;
+import me.realized.de.arenaregen.zone.Zone;
 import me.realized.duels.api.Duels;
 
 public abstract class Task extends BukkitRunnable {
@@ -15,10 +15,10 @@ public abstract class Task extends BukkitRunnable {
     protected final Duels api;
     protected final Config config;
     protected final NMS handler;
-    protected final ResetZone zone;
+    protected final Zone zone;
     protected final Callback onDone;
 
-    protected Task(ArenaRegen extension, ResetZone zone, Callback onDone) {
+    protected Task(ArenaRegen extension, Zone zone, Callback onDone) {
         this.extension = extension;
         this.api = extension.getApi();
         this.config = extension.getConfiguration();

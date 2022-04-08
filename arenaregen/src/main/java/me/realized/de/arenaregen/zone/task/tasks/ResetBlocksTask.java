@@ -9,14 +9,14 @@ import me.realized.de.arenaregen.nms.fallback.NMSHandler;
 import me.realized.de.arenaregen.util.BlockInfo;
 import me.realized.de.arenaregen.util.Callback;
 import me.realized.de.arenaregen.util.Pair;
-import me.realized.de.arenaregen.zone.ResetZone;
+import me.realized.de.arenaregen.zone.Zone;
 import me.realized.de.arenaregen.zone.task.Task;
 
 public class ResetBlocksTask extends Task {
     
     private final Queue<Pair<Block, BlockInfo>> changed;
 
-    public ResetBlocksTask(final ArenaRegen extension, final ResetZone zone, final Callback onDone, final Queue<Pair<Block, BlockInfo>> changed) {
+    public ResetBlocksTask(final ArenaRegen extension, final Zone zone, final Callback onDone, final Queue<Pair<Block, BlockInfo>> changed) {
         super(extension, zone, onDone);
         this.changed = changed;
     }
@@ -41,6 +41,8 @@ public class ResetBlocksTask extends Task {
 
         // Skip relighting if using fallback handler
         if (handler instanceof NMSHandler) {
+            zone.startTask(null);
+            zone.getArena().setDisabled(false);
             return;
         }
 
