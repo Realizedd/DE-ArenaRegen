@@ -12,7 +12,10 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockFadeEvent;
+import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockGrowEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
@@ -40,7 +43,7 @@ public class ZoneListener implements Listener {
         this.zoneManager = zoneManager;
     }
     
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void on(final ChunkUnloadEvent event) {
         if (!CompatUtil.isPurpur() && zoneManager.getZones().stream().anyMatch(zone -> zone.isResetting() && zone.isCached(event.getChunk()))) {
             event.setCancelled(true);
@@ -93,7 +96,7 @@ public class ZoneListener implements Listener {
     }
 
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void on(final BlockBreakEvent event) {
         final Block block = event.getBlock();
         final Player player = event.getPlayer();
@@ -116,7 +119,7 @@ public class ZoneListener implements Listener {
     }
 
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void on(final BlockPlaceEvent event) {
         if (!config.isTrackBlockChanges()) {
             return;
@@ -133,7 +136,7 @@ public class ZoneListener implements Listener {
     }
 
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void on(final BlockFadeEvent event) {
         final Block block = event.getBlock();
         final Zone zone = zoneManager.get(block);
@@ -160,7 +163,7 @@ public class ZoneListener implements Listener {
     }
 
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void on(final BlockBurnEvent event) {
         final Block block = event.getBlock();
         final Zone zone = zoneManager.get(block);
@@ -181,7 +184,7 @@ public class ZoneListener implements Listener {
     }
 
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void on(final EntityExplodeEvent event) {
         final Zone zone = zoneManager.get(event.getEntity().getLocation().getBlock());
 
@@ -201,7 +204,7 @@ public class ZoneListener implements Listener {
     }
 
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void on(final BlockExplodeEvent event) {
         final Block block = event.getBlock();
         final Zone zone = zoneManager.get(block);
@@ -222,7 +225,7 @@ public class ZoneListener implements Listener {
     }
 
     
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void on(final BlockIgniteEvent event) {
         final Block block = event.getBlock();
         final Zone zone = zoneManager.get(block);
@@ -243,8 +246,71 @@ public class ZoneListener implements Listener {
     }
 
     
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void on(final LeavesDecayEvent event) {
+        final Block block = event.getBlock();
+        final Zone zone = zoneManager.get(block);
+
+        if (zone == null) {
+            return;
+        }
+
+        if (config.isTrackBlockChanges()) {
+            zone.track(event.getBlock());
+        }
+        
+        if (!config.isPreventLeafDecay()) {
+            return;
+        }
+
+        event.setCancelled(true);
+    }
+
+    
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void on(final BlockPhysicsEvent event) {
+        final Block block = event.getBlock();
+        final Zone zone = zoneManager.get(block);
+
+        if (zone == null) {
+            return;
+        }
+
+        if (config.isTrackBlockChanges()) {
+            zone.track(event.getBlock());
+        }
+        
+        if (!config.isPreventLeafDecay()) {
+            return;
+        }
+
+        event.setCancelled(true);
+    }
+
+    
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void on(final BlockGrowEvent event) {
+        final Block block = event.getBlock();
+        final Zone zone = zoneManager.get(block);
+
+        if (zone == null) {
+            return;
+        }
+
+        if (config.isTrackBlockChanges()) {
+            zone.track(event.getBlock());
+        }
+        
+        if (!config.isPreventLeafDecay()) {
+            return;
+        }
+
+        event.setCancelled(true);
+    }
+
+    
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void on(final BlockFromToEvent event) {
         final Block block = event.getBlock();
         final Zone zone = zoneManager.get(block);
 
