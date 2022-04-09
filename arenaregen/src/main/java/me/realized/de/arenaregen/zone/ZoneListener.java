@@ -38,8 +38,6 @@ public class ZoneListener implements Listener {
         this.config = extension.getConfiguration();
         this.lang = extension.getLang();
         this.zoneManager = zoneManager;
-        System.out.println("trackBlockChanges=" + config.isTrackBlockChanges());
-        System.out.println("isPreventBlockExplode=" + config.isPreventBlockExplode());
     }
     
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
