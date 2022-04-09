@@ -45,7 +45,7 @@ public class ZoneListener implements Listener {
     
     @EventHandler(priority = EventPriority.LOWEST)
     public void on(final ChunkUnloadEvent event) {
-        if (!CompatUtil.isPurpur() && zoneManager.getZones().stream().anyMatch(zone -> zone.isResetting() && zone.isCached(event.getChunk()))) {
+        if (!CompatUtil.isPaper() && zoneManager.getZones().stream().anyMatch(zone -> zone.isResetting() && zone.isCached(event.getChunk()))) {
             event.setCancelled(true);
         }
     }
