@@ -162,7 +162,6 @@ public class ZoneListener implements Listener {
         event.setCancelled(true);
     }
 
-
     @EventHandler(priority = EventPriority.LOWEST)
     public void on(final BlockBurnEvent event) {
         final Block block = event.getBlock();
@@ -269,6 +268,10 @@ public class ZoneListener implements Listener {
     
     @EventHandler(priority = EventPriority.LOWEST)
     public void on(final BlockPhysicsEvent event) {
+        if (!config.isTrackBlockChanges()) {
+            return;
+        }
+        
         final Block block = event.getBlock();
         final Zone zone = zoneManager.get(block);
 
@@ -276,20 +279,16 @@ public class ZoneListener implements Listener {
             return;
         }
 
-        if (config.isTrackBlockChanges()) {
-            zone.track(event.getBlock());
-        }
-        
-        if (!config.isPreventLeafDecay()) {
-            return;
-        }
-
-        event.setCancelled(true);
+        zone.track(event.getBlock());
     }
 
     
     @EventHandler(priority = EventPriority.LOWEST)
     public void on(final BlockGrowEvent event) {
+        if (!config.isTrackBlockChanges()) {
+            return;
+        }
+        
         final Block block = event.getBlock();
         final Zone zone = zoneManager.get(block);
 
@@ -297,20 +296,16 @@ public class ZoneListener implements Listener {
             return;
         }
 
-        if (config.isTrackBlockChanges()) {
-            zone.track(event.getBlock());
-        }
-        
-        if (!config.isPreventLeafDecay()) {
-            return;
-        }
-
-        event.setCancelled(true);
+        zone.track(event.getBlock());
     }
 
     
     @EventHandler(priority = EventPriority.LOWEST)
     public void on(final BlockFromToEvent event) {
+        if (!config.isTrackBlockChanges()) {
+            return;
+        }
+        
         final Block block = event.getBlock();
         final Zone zone = zoneManager.get(block);
 
@@ -318,14 +313,6 @@ public class ZoneListener implements Listener {
             return;
         }
 
-        if (config.isTrackBlockChanges()) {
-            zone.track(event.getBlock());
-        }
-        
-        if (!config.isPreventLeafDecay()) {
-            return;
-        }
-
-        event.setCancelled(true);
+        zone.track(event.getBlock());
     }
 }
