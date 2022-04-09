@@ -262,7 +262,7 @@ public class Zone {
 
 	if (hard) {	
             startTask(new ScanBlocksTask(extension, this, onDone));
-	return;
+	    return;
 	}
 
 	startTask(config.isTrackBlockChanges() ? new ResetBlocksTask(extension, this, onDone, changes) : new ScanBlocksTask(extension, this, onDone));        
