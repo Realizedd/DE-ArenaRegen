@@ -38,6 +38,8 @@ public class ZoneListener implements Listener {
         this.config = extension.getConfiguration();
         this.lang = extension.getLang();
         this.zoneManager = zoneManager;
+        System.out.println("trackBlockChanges=" + config.isTrackBlockChanges());
+        System.out.println("isPreventBlockExplode=" + config.isPreventBlockExplode());
     }
     
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -181,45 +183,45 @@ public class ZoneListener implements Listener {
     }
 
 
-    // @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    // public void on(final EntityExplodeEvent event) {
-    //     final Zone zone = zoneManager.get(event.getEntity().getLocation().getBlock());
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void on(final EntityExplodeEvent event) {
+        final Zone zone = zoneManager.get(event.getEntity().getLocation().getBlock());
 
-    //     if (zone == null) {
-    //         return;
-    //     }
+        if (zone == null) {
+            return;
+        }
 
-    //     if (config.isTrackBlockChanges()) {
-    //         zone.track(event.blockList());
-    //     }
+        if (config.isTrackBlockChanges()) {
+            zone.track(event.blockList());
+        }
 
-    //     if (!config.isPreventBlockExplode()) {
-    //         return;
-    //     }
+        if (!config.isPreventBlockExplode()) {
+            return;
+        }
 
-    //     event.setCancelled(true);
-    // }
+        event.setCancelled(true);
+    }
 
 
-    // @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    // public void on(final BlockExplodeEvent event) {
-    //     final Block block = event.getBlock();
-    //     final Zone zone = zoneManager.get(block);
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void on(final BlockExplodeEvent event) {
+        final Block block = event.getBlock();
+        final Zone zone = zoneManager.get(block);
 
-    //     if (zone == null) {
-    //         return;
-    //     }
+        if (zone == null) {
+            return;
+        }
 
-    //     if (config.isTrackBlockChanges()) {
-    //         zone.track(event.blockList());
-    //     }
+        if (config.isTrackBlockChanges()) {
+            zone.track(event.blockList());
+        }
 
-    //     if (!config.isPreventBlockExplode()) {
-    //         return;
-    //     }
+        if (!config.isPreventBlockExplode()) {
+            return;
+        }
 
-    //     event.setCancelled(true);
-    // }
+        event.setCancelled(true);
+    }
 
     
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

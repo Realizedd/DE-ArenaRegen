@@ -43,6 +43,11 @@ public class ResetBlocksTask extends Task {
         if (handler instanceof NMSHandler) {
             zone.startTask(null);
             zone.getArena().setDisabled(false);
+            
+            if (onDone != null) {
+                onDone.call();
+            }
+
             return;
         }
 
