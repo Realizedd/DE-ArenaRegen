@@ -72,7 +72,7 @@ public class Zone {
     private final List<Entity> spawnedEntities = new ArrayList<>();
 
     @Getter
-    private final Queue<Pair<Block, BlockInfo>> changes = new LinkedList<>();
+    private Queue<Pair<Block, BlockInfo>> changes = new LinkedList<>();
 
     Zone(final ArenaRegen extension, final Duels api, final Arena arena, final File folder, final Location first, final Location second) {
         this.api = api;
@@ -269,7 +269,12 @@ public class Zone {
             extension.debug("isTrackBlockChanges=" + config.isTrackBlockChanges());
         }
 
-        startTask(config.isTrackBlockChanges() ? new ResetBlocksTask(extension, this, onDone, changes) : new ScanBlocksTask(extension, this, onDone));        
+        if (config.isTrackBlockChanges()) {
+            startTask(new ResetBlocksTask(extension, this, onDone, changes));
+            this.changes = new LinkedList<>();
+        } else {
+            startTask(new ScanBlocksTask(extension, this, onDone));       
+        } 
     }
 
     public void reset(final Callback onDone) {
