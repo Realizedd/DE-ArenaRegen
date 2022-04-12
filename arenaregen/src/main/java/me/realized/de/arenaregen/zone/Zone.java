@@ -72,7 +72,7 @@ public class Zone {
     private final List<Entity> spawnedEntities = new ArrayList<>();
 
     @Getter
-    private Queue<Pair<Block, BlockInfo>> changes = new LinkedList<>();
+    private Map<Block, Pair<Block, BlockInfo>> changes = new HashMap<>();
 
     Zone(final ArenaRegen extension, final Duels api, final Arena arena, final File folder, final Location first, final Location second) {
         this.api = api;
@@ -270,11 +270,11 @@ public class Zone {
         }
 
         if (config.isTrackBlockChanges()) {
-            startTask(new ResetBlocksTask(extension, this, onDone, changes));
-            this.changes = new LinkedList<>();
+            startTask(new ResetBlocksTask(extension, this, onDone,new LinkedList<>(changes.values())));
+            this.changes = new HashMap<>();
         } else {
             startTask(new ScanBlocksTask(extension, this, onDone));       
-        } 
+        }
     }
 
     public void reset(final Callback onDone) {
@@ -305,12 +305,16 @@ public class Zone {
     }
 
     public void track(final Block block) {
+        if (changes.containsKey(block)) {
+            return;
+        }
+
         final Position position = new Position(block);
         final BlockInfo info = blocks.get(position);
 
         if (info == null) {
             if (block.getType() != Material.AIR) {
-                changes.add(new Pair<>(block, new BlockInfo()));
+                changes.put(block, new Pair<>(block, new BlockInfo()));
             }
 
             return;
@@ -318,7 +322,7 @@ public class Zone {
             return;
         }
 
-        changes.add(new Pair<>(block, info));
+        changes.put(block, new Pair<>(block, info));
     }
 
     public void track(final Collection<Block> blocks) {
