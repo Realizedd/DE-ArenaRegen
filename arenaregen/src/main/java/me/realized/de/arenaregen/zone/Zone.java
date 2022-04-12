@@ -260,12 +260,16 @@ public class Zone {
     public void reset(final Callback onDone, final boolean hard) {
         arena.setDisabled(true);
 
-	if (hard) {	
+        if (hard) {	
             startTask(new ScanBlocksTask(extension, this, onDone));
-	    return;
-	}
+            return;
+        }
 
-	startTask(config.isTrackBlockChanges() ? new ResetBlocksTask(extension, this, onDone, changes) : new ScanBlocksTask(extension, this, onDone));        
+        if (ArenaRegen.DEBUG) {
+            extension.debug("isTrackBlockChanges=" + config.isTrackBlockChanges());
+        }
+
+        startTask(config.isTrackBlockChanges() ? new ResetBlocksTask(extension, this, onDone, changes) : new ScanBlocksTask(extension, this, onDone));        
     }
 
     public void reset(final Callback onDone) {

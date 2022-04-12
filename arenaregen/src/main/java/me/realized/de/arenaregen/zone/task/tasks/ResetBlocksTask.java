@@ -19,6 +19,10 @@ public class ResetBlocksTask extends Task {
     public ResetBlocksTask(final ArenaRegen extension, final Zone zone, final Callback onDone, final Queue<Pair<Block, BlockInfo>> changed) {
         super(extension, zone, onDone);
         this.changed = changed;
+
+        if (ArenaRegen.DEBUG) {
+            extension.debug("ResetBlocksTask(" + changed.size() + ")");
+        }
     }
 
     @Override
@@ -38,6 +42,10 @@ public class ResetBlocksTask extends Task {
         }
 
         cancel();
+
+        if (ArenaRegen.DEBUG) {
+            extension.debug("ResetBlocksTask#handlerClass=" + handler.getClass().getName());
+        }
 
         // Skip relighting if using fallback handler
         if (handler instanceof NMSHandler) {

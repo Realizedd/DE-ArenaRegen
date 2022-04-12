@@ -1,7 +1,9 @@
 package me.realized.de.arenaregen.zone.task.tasks;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Set;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -10,6 +12,7 @@ import org.bukkit.block.Block;
 import me.realized.de.arenaregen.ArenaRegen;
 import me.realized.de.arenaregen.util.BlockInfo;
 import me.realized.de.arenaregen.util.Callback;
+import me.realized.de.arenaregen.util.ChunkLoc;
 import me.realized.de.arenaregen.util.Pair;
 import me.realized.de.arenaregen.util.Position;
 import me.realized.de.arenaregen.zone.Zone;
@@ -32,9 +35,20 @@ public class ScanBlocksTask extends Task {
 
     @Override
     public void run() {
+        Set<ChunkLoc> chunks;
+
+        if (ArenaRegen.DEBUG) {
+            chunks = new HashSet<>();
+        }
+        
         for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
             for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
                 final Block block = min.getWorld().getBlockAt(x, y, z);
+
+                if (ArenaRegen.DEBUG) {
+                    chunks.add(new ChunkLoc(block.getChunk()));
+                }
+
                 final Position position = new Position(block);
                 final BlockInfo info = zone.getBlocks().get(position);
 
@@ -56,6 +70,12 @@ public class ScanBlocksTask extends Task {
         x++;
 
         if (x > max.getBlockX()) {
+            if (ArenaRegen.DEBUG) {
+                extension.debug("--- CHUNK SET TEST ---");
+                extension.debug("Scanned Chunks: " + chunks);
+                extension.debug("Calculated Chunks: " + zone.getChunks());
+            }
+            
             cancel();
             zone.startTask(new ResetBlocksTask(extension, zone, onDone, changed));
         }
