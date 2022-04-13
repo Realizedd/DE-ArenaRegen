@@ -3,7 +3,7 @@
 selecting-tool: IRON_HOE
 
 experimental:
-  # If enabled, the extension will track block changes made by players mid match instead of scanning
+  # If enabled, the extension will track block changes made by players during the match instead of scanning
   # the entire arena after the match to locate the block changes. While much more efficient, this method
   # is unable to detect block changes caused by other plugins. If you're using such a plugin, avoid this option!
   # default: false
