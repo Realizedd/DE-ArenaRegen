@@ -38,8 +38,8 @@ prevent-block-burn: true
 prevent-block-melt: true
 
 # Prevents blocks in the reset zone from exploding.
-# default: true
-prevent-block-explode: true
+# default: false
+prevent-block-explode: false
 
 # Prevents fire in the reset zone from spreading.
 # default: true

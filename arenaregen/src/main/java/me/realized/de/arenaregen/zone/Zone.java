@@ -265,18 +265,10 @@ public class Zone {
             return;
         }
 
-        if (ArenaRegen.DEBUG) {
-            extension.debug("isTrackBlockChanges=" + config.isTrackBlockChanges());
-        }
-
         if (config.isTrackBlockChanges()) {
             startTask(new ResetBlocksTask(extension, this, onDone, this.changes));
             this.changedBlocks = new HashSet<>();
             this.changes = new LinkedList<>();
-
-            if (ArenaRegen.DEBUG) {
-                extension.debug("cleared? " + this.changedBlocks.size() + ", " + this.changes.size());
-            }
         } else {
             startTask(new ScanBlocksTask(extension, this, onDone));       
         }

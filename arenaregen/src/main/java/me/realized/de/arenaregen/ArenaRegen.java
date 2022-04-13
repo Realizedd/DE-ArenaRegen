@@ -14,8 +14,6 @@ import me.realized.duels.api.extension.DuelsExtension;
 
 public class ArenaRegen extends DuelsExtension {
 
-    public static final boolean DEBUG = true;
-
     @Getter
     private Config configuration;
     @Getter
@@ -82,10 +80,6 @@ public class ArenaRegen extends DuelsExtension {
 
     public void info(final String s) {
         api.info("[" + getName() + " Extension] " + s);
-    }
-
-    public void debug(final String s) {
-        api.info("[" + getName() + " Extension] DEBUG: " + s);
     }
 
     public void error(final String s) {
