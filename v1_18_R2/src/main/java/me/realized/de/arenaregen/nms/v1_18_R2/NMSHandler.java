@@ -1,4 +1,4 @@
-package me.realized.de.arenaregen.nms.v1_18_R1;
+package me.realized.de.arenaregen.nms.v1_18_R2;
 
 import me.realized.de.arenaregen.nms.NMS;
 import net.minecraft.core.BlockPosition;
@@ -8,10 +8,10 @@ import net.minecraft.world.level.block.state.IBlockData;
 import net.minecraft.world.level.chunk.Chunk;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_18_R1.CraftChunk;
-import org.bukkit.craftbukkit.v1_18_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_18_R1.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.v1_18_R2.CraftChunk;
+import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_18_R2.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 
 public class NMSHandler implements NMS {
@@ -37,6 +37,6 @@ public class NMSHandler implements NMS {
         final int x = bukkitBlock.getX(), y = bukkitBlock.getY(), z = bukkitBlock.getZ();
         final BlockPosition position = new BlockPosition(x, y, z);
         final World world = ((CraftWorld) bukkitBlock.getWorld()).getHandle();
-        world.L().m().a(position);
+        world.K().n().a(position);
     }
 }

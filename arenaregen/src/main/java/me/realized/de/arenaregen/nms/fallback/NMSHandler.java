@@ -30,4 +30,7 @@ public class NMSHandler implements NMS {
             } catch (IllegalAccessException | InvocationTargetException ignored) {}
         }
     }
+
+    @Override
+    public void updateLighting(Block bukkitBlock) {}
 }

@@ -4,7 +4,7 @@ import lombok.Getter;
 import me.realized.de.arenaregen.ArenaRegen;
 import me.realized.de.arenaregen.config.Lang;
 import me.realized.de.arenaregen.selection.SelectionManager;
-import me.realized.de.arenaregen.zone.ResetZoneManager;
+import me.realized.de.arenaregen.zone.ZoneManager;
 import me.realized.duels.api.Duels;
 import me.realized.duels.api.arena.ArenaManager;
 import org.bukkit.command.CommandSender;
@@ -14,7 +14,7 @@ public abstract class ARCommand {
     protected final ArenaManager arenaManager;
     protected final Lang lang;
     protected final SelectionManager selectionManager;
-    protected final ResetZoneManager zoneManager;
+    protected final ZoneManager zoneManager;
 
     @Getter
     private final String name;
