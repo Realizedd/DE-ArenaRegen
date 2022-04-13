@@ -1,6 +1,5 @@
 package me.realized.de.arenaregen.zone.task.tasks;
 
-import java.util.Map;
 import java.util.Queue;
 
 import org.bukkit.block.Block;
