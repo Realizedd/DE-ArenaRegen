@@ -58,7 +58,11 @@ public class ZoneManager {
     public void handleDisable() {
         zones.values().stream().filter(zone -> zone.getArena().isUsed() || zone.isResetting()).forEach(zone -> {
             zone.getArena().setDisabled(false);
-            zone.getTask().cancel();
+
+            if (zone.isResetting()) { 
+                zone.getTask().cancel();
+            }
+            
             zone.resetInstant();
         });
     }
