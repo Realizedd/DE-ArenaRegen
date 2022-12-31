@@ -32,8 +32,6 @@ public class ResetCommand extends ARCommand {
         }
 
         lang.sendMessage(sender, "COMMAND.arenaregen.reset.start", "name", name);
-        zone.reset(() -> {
-            lang.sendMessage(sender, "COMMAND.arenaregen.reset.end", "name", name);
-        }, true);
+        zone.reset(() -> lang.sendMessage(sender, "COMMAND.arenaregen.reset.end", "name", name));
     }
 }

@@ -28,6 +28,11 @@ public class ArenaRegen extends DuelsExtension {
     @Override
     public void onEnable() {
         this.configuration = new Config(this);
+
+        if (configuration.isTrackBlockChanges() && configuration.isAllowArenaBlockBreak()) {
+            warn("The config options 'track-block-changes' and 'allow-arena-block-break' are incompatible with each other.");
+        }
+
         this.lang = new Lang(this);
         this.handler = findHandler();
 
@@ -80,6 +85,10 @@ public class ArenaRegen extends DuelsExtension {
 
     public void info(final String s) {
         api.info("[" + getName() + " Extension] " + s);
+    }
+
+    public void warn(final String s) {
+        api.warn("[" + getName() + " Extension] " + s);
     }
 
     public void error(final String s) {

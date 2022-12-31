@@ -2,14 +2,12 @@ package me.realized.de.arenaregen.zone.task.tasks;
 
 import java.util.LinkedList;
 import java.util.Queue;
-
-import org.bukkit.Chunk;
-
 import me.realized.de.arenaregen.ArenaRegen;
 import me.realized.de.arenaregen.util.Callback;
 import me.realized.de.arenaregen.util.ChunkLoc;
 import me.realized.de.arenaregen.zone.Zone;
 import me.realized.de.arenaregen.zone.task.Task;
+import org.bukkit.Chunk;
 
 public class ChunkRefreshTask extends Task {
 
@@ -26,7 +24,7 @@ public class ChunkRefreshTask extends Task {
 
         if (current == null) {
             cancel();
-            zone.startTask(null);
+            zone.startSyncTaskTimer(null);
             zone.getArena().setDisabled(false);
 
             if (onDone != null) {

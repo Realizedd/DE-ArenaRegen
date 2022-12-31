@@ -30,7 +30,7 @@ COMMAND:
       start: '{PREFIX} &7Resetting &f%name%&7...'
       end: '{PREFIX} &7Reset complete for &f%name%&7.'
     list:
-      header: '{PREFIX} &7List of &fReset Zones &9-'
+      header: '{PREFIX} &7List of loaded &fReset Zones &9-'
       format: '&bArena: &c%name% &7- &bMin: &c%min_pos% &7- &bMax: &c%max_pos% &7- &bBlocks: &c%blocks_count%'
       footer: '{PREFIX} &7Total: &a%zones_count%'
   sub-command-usage: '{PREFIX} &f/%command% %usage% &e- &7%description%'

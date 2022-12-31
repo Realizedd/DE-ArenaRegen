@@ -1,14 +1,13 @@
 package me.realized.de.arenaregen.zone.task.tasks;
 
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-
 import me.realized.de.arenaregen.ArenaRegen;
 import me.realized.de.arenaregen.util.BlockUtil;
 import me.realized.de.arenaregen.util.Callback;
 import me.realized.de.arenaregen.zone.Zone;
 import me.realized.de.arenaregen.zone.task.Task;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 
 public class RelightBlocksTask extends Task {
     
@@ -27,13 +26,13 @@ public class RelightBlocksTask extends Task {
     public void run() {
         for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
             for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
-                final Block block = min.getWorld().getBlockAt(x, y, z);
-                
+                final Block block = zone.getWorld().getBlockAt(x, y, z);
+
                 if (block.getType() == Material.AIR || BlockUtil.isSurrounded(block)) {
                     continue;
                 }
 
-                handler.updateLighting(block);
+                handler.updateLighting(zone.getWorld(), x, y, z);
             }
         }
 
@@ -41,7 +40,7 @@ public class RelightBlocksTask extends Task {
 
         if (x > max.getBlockX()) {
             cancel();
-            zone.startTask(new ChunkRefreshTask(extension, zone, onDone));
+            zone.startSyncTaskTimer(new ChunkRefreshTask(extension, zone, onDone));
         }
     }
 }
