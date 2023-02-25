@@ -6,6 +6,7 @@ import me.realized.de.arenaregen.nms.NMS;
 import me.realized.de.arenaregen.util.ReflectionUtil;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
@@ -21,7 +22,8 @@ public class NMSHandler implements NMS {
     public void sendChunkUpdate(final Player player, final Chunk chunk) {}
 
     @Override
-    public void setBlockFast(final Block block, final Material material, final int data) {
+    public void setBlockFast(final World world, final int x, final int y, final int z, final int data, final Material material) {
+        final Block block = world.getBlockAt(x, y, z);
         block.setType(material);
 
         if (SET_DATA != null) {
@@ -32,5 +34,5 @@ public class NMSHandler implements NMS {
     }
 
     @Override
-    public void updateLighting(Block bukkitBlock) {}
+    public void updateLighting(final World world, final int x, final int y, final int z) {}
 }

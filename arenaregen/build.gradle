@@ -28,6 +28,7 @@ dependencies {
     implementation project(':v1_17_R1')
     implementation project(':v1_18_R1')
     implementation project(':v1_18_R2')
+    implementation project(':v1_19_R1')
 }
 
 shadowJar {
@@ -47,6 +48,7 @@ shadowJar {
         include(dependency(':v1_17_R1'))
         include(dependency(':v1_18_R1'))
         include(dependency(':v1_18_R2'))
+        include(dependency(':v1_19_R1'))
     }
 }
 

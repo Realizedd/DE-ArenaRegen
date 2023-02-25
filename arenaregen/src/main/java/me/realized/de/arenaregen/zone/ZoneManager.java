@@ -4,15 +4,13 @@ import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
-
 import me.realized.de.arenaregen.ArenaRegen;
 import me.realized.de.arenaregen.selection.Selection;
 import me.realized.duels.api.Duels;
 import me.realized.duels.api.arena.Arena;
 import me.realized.duels.api.arena.ArenaManager;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 
 public class ZoneManager {
 
@@ -58,8 +56,16 @@ public class ZoneManager {
     public void handleDisable() {
         zones.values().stream().filter(zone -> zone.getArena().isUsed() || zone.isResetting()).forEach(zone -> {
             zone.getArena().setDisabled(false);
-            zone.getTask().cancel();
-            zone.resetInstant();
+
+            if (zone.isResetting()) { 
+                zone.getTask().cancel();
+            }
+
+            try {
+                zone.resetInstant();
+            } catch (Exception ex) {
+                extension.error("Could not reset zone '" + zone.getName() + "'!", ex);
+            }
         });
     }
 

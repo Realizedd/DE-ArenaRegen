@@ -6,16 +6,25 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
-
+import lombok.Getter;
+import me.realized.de.arenaregen.ArenaRegen;
+import me.realized.de.arenaregen.config.Config;
+import me.realized.de.arenaregen.nms.NMS;
+import me.realized.de.arenaregen.util.BlockInfo;
+import me.realized.de.arenaregen.util.BlockUtil;
+import me.realized.de.arenaregen.util.Callback;
+import me.realized.de.arenaregen.util.ChunkLoc;
+import me.realized.de.arenaregen.util.Position;
+import me.realized.de.arenaregen.zone.task.Task;
+import me.realized.de.arenaregen.zone.task.tasks.FilterBlocksTask;
+import me.realized.de.arenaregen.zone.task.tasks.ScanBlocksTask;
+import me.realized.duels.api.Duels;
+import me.realized.duels.api.arena.Arena;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -25,23 +34,6 @@ import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Entity;
-
-import lombok.Getter;
-import me.realized.de.arenaregen.ArenaRegen;
-import me.realized.de.arenaregen.config.Config;
-import me.realized.de.arenaregen.nms.NMS;
-import me.realized.de.arenaregen.util.BlockInfo;
-import me.realized.de.arenaregen.util.BlockUtil;
-import me.realized.de.arenaregen.util.Callback;
-import me.realized.de.arenaregen.util.ChunkLoc;
-import me.realized.de.arenaregen.util.Pair;
-import me.realized.de.arenaregen.util.Position;
-import me.realized.de.arenaregen.zone.task.Task;
-import me.realized.de.arenaregen.zone.task.tasks.ResetBlocksTask;
-import me.realized.de.arenaregen.zone.task.tasks.ScanBlocksTask;
-import me.realized.duels.api.Duels;
-import me.realized.duels.api.arena.Arena;
 
 public class Zone {
 
@@ -57,22 +49,22 @@ public class Zone {
     @Getter
     private Location min, max;
 
+    @Getter
     private File file;
 
     @Getter
     private Task task;
 
     @Getter
-    private final Map<Position, BlockInfo> blocks = new HashMap<>();
+    private volatile Map<Position, BlockInfo> blocks = new HashMap<>();
     
     @Getter
     private final Set<ChunkLoc> chunks = new HashSet<>();
 
-    @Getter
-    private final List<Entity> spawnedEntities = new ArrayList<>();
+//    @Getter
+//    private final List<Entity> spawnedEntities = new ArrayList<>();
 
-    private Set<Block> changedBlocks = new HashSet<>();
-    private Queue<Pair<Block, BlockInfo>> changes = new LinkedList<>();
+    private Set<Position> changedBlocks = new HashSet<>();
 
     Zone(final ArenaRegen extension, final Duels api, final Arena arena, final File folder, final Location first, final Location second) {
         this.api = api;
@@ -94,6 +86,9 @@ public class Zone {
             Math.max(first.getBlockZ(), second.getBlockZ())
         );
 
+
+        final Map<Position, BlockInfo> blocks = new HashMap<>();
+
         BlockUtil.runForCuboid(min, max, block -> {
             // Only store non-air blocks
             if (block.getType() == Material.AIR) {
@@ -102,7 +97,11 @@ public class Zone {
 
             blocks.put(new Position(block), new BlockInfo(block.getState()));
         });
-        
+
+        if (!config.isTrackBlockChanges()) {
+            this.blocks = blocks;
+        }
+
         try (final BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             writer.write(min.getWorld().getName());
             writer.newLine();
@@ -176,7 +175,7 @@ public class Zone {
 
             this.file = file = newFile;
         }
-        
+
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String worldName = reader.readLine();
             final World world;
@@ -187,6 +186,23 @@ public class Zone {
 
             this.min = new Location(world, Integer.parseInt(reader.readLine()), Integer.parseInt(reader.readLine()), Integer.parseInt(reader.readLine()));
             this.max = new Location(world, Integer.parseInt(reader.readLine()), Integer.parseInt(reader.readLine()), Integer.parseInt(reader.readLine()));
+        }
+
+        if (!config.isTrackBlockChanges()) {
+            this.blocks = loadBlocks();
+        }
+
+        loadChunks();
+    }
+
+    private Map<Position, BlockInfo> loadBlocks() throws IOException {
+        final Map<Position, BlockInfo> blocks = new HashMap<>();
+
+        try (final BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            // Skip 7 lines to get to blocks section
+            for (int i = 0; i < 7; i++) {
+                reader.readLine();
+            }
 
             String block;
 
@@ -196,11 +212,11 @@ public class Zone {
                 final Position pos = new Position(Integer.parseInt(posData[0]), Integer.parseInt(posData[1]), Integer.parseInt(posData[2]));
                 final String[] blockData = data[1].split(";");
                 final BlockInfo info = new BlockInfo(Material.getMaterial(blockData[0]), Byte.parseByte(blockData[1]));
-                this.blocks.put(pos, info);
+                blocks.put(pos, info);
             }
         }
 
-        loadChunks();
+        return blocks;
     }
 
     private void loadChunks() {
@@ -215,12 +231,21 @@ public class Zone {
         return arena.getName();
     }
 
+    private int calculateSize() {
+        return (max.getBlockX() - min.getBlockX() + 1)
+            + (max.getBlockY() - min.getBlockY() + 1)
+            + (max.getBlockZ() - min.getBlockZ() + 1);
+    }
+
     public int getTotalBlocks() {
-        return blocks.size();
+        return config.isTrackBlockChanges() ? calculateSize() : blocks.size();
+    }
+
+    public World getWorld() {
+        return min.getWorld();
     }
 
     void delete() {
-        blocks.clear();
         file.delete();
     }
 
@@ -229,14 +254,16 @@ public class Zone {
     }
 
     // Called before reset zones are saved to files.
-    public void resetInstant() {
+    public void resetInstant() throws IOException {
+        final Map<Position, BlockInfo> blocks = loadBlocks();
+
         BlockUtil.runForCuboid(min, max, block -> {
-            final Position position = new Position(block);
-            final BlockInfo info = blocks.get(position);
+            final Position pos = new Position(block);
+            final BlockInfo info = blocks.get(pos);
 
             if (info == null) {
                 if (block.getType() != Material.AIR) {
-                    handler.setBlockFast(block, Material.AIR, 0);
+                    handler.setBlockFast(getWorld(), pos.getX(), pos.getY(), pos.getZ(), 0, Material.AIR);
                 }
 
                 return;
@@ -244,12 +271,12 @@ public class Zone {
                 return;
             }
 
-            handler.setBlockFast(block, info.getType(), info.getData());
-            handler.updateLighting(block);
+            handler.setBlockFast(getWorld(), pos.getX(), pos.getY(), pos.getZ(), info.getData(), info.getType());
+            handler.updateLighting(getWorld(), pos.getX(), pos.getY(), pos.getZ());
         });
     }
 
-    public void startTask(final Task task) {
+    public void startSyncTaskTimer(final Task task) {
         this.task = task;
 
         if (task != null) {
@@ -257,25 +284,24 @@ public class Zone {
         }
     }
 
-    public void reset(final Callback onDone, final boolean hard) {
-        arena.setDisabled(true);
+    public void startAsyncTask(final Task task) {
+        this.task = task;
 
-        if (hard) {	
-            startTask(new ScanBlocksTask(extension, this, onDone));
-            return;
-        }
-
-        if (config.isTrackBlockChanges()) {
-            startTask(new ResetBlocksTask(extension, this, onDone, this.changes));
-            this.changedBlocks = new HashSet<>();
-            this.changes = new LinkedList<>();
-        } else {
-            startTask(new ScanBlocksTask(extension, this, onDone));       
+        if (task != null) {
+            task.runTaskAsynchronously(api);
         }
     }
 
     public void reset(final Callback onDone) {
-        reset(onDone, false);
+        arena.setDisabled(true);
+
+        if (!config.isTrackBlockChanges()) {
+            startSyncTaskTimer(new ScanBlocksTask(extension, this, onDone));
+            return;
+        }
+
+        startAsyncTask(new FilterBlocksTask(extension, this, onDone, this.changedBlocks));
+        this.changedBlocks = new HashSet<>();
     }
 
     public void reset() {
@@ -293,38 +319,19 @@ public class Zone {
         return contains(block.getLocation());
     }
 
-    boolean isCached(final Block block) {
-        return contains(block) && blocks.containsKey(new Position(block));
-    }
-
-    boolean isCached(final Chunk chunk) {
+    public boolean contains(final Chunk chunk) {
         return chunks.contains(new ChunkLoc(chunk));
     }
 
+    public boolean isCached(final Block block) {
+        return contains(block) && blocks.containsKey(new Position(block));
+    }
+
     public void track(final Block block) {
-        if (changedBlocks.contains(block)) {
-            return;
-        }
-
-        final Position position = new Position(block);
-        final BlockInfo info = blocks.get(position);
-
-        if (info == null) {
-            if (block.getType() != Material.AIR) {
-                changes.add(new Pair<>(block, new BlockInfo()));
-                changedBlocks.add(block);
-            }
-
-            return;
-        } else if (info.matches(block)) {
-            return;
-        }
-
-        changes.add(new Pair<>(block, info));
-        changedBlocks.add(block);
+        changedBlocks.add(new Position(block));
     }
 
     public void track(final Collection<Block> blocks) {
-        blocks.forEach(block -> track(block));
+        blocks.forEach(this::track);
     }
 }

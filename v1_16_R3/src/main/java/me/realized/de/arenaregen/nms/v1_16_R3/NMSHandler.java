@@ -7,8 +7,6 @@ import net.minecraft.server.v1_16_R3.IBlockData;
 import net.minecraft.server.v1_16_R3.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_16_R3.World;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_16_R3.CraftChunk;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
@@ -23,20 +21,18 @@ public class NMSHandler implements NMS {
     }
 
     @Override
-    public void setBlockFast(final Block bukkitBlock, final Material material, final int data) {
-        final int x = bukkitBlock.getX(), y = bukkitBlock.getY(), z = bukkitBlock.getZ();
+    public void setBlockFast(final org.bukkit.World world, final int x, final int y, final int z, final int data, final Material material) {
         final BlockPosition position = new BlockPosition(x, y, z);
-        final Chunk chunk = ((CraftChunk) bukkitBlock.getChunk()).getHandle();
+        final Chunk chunk = ((CraftChunk) world.getChunkAt(x >> 4, z >> 4)).getHandle();
         final net.minecraft.server.v1_16_R3.Block block = CraftMagicNumbers.getBlock(material);
         final IBlockData blockData = block.getBlockData();
         chunk.setType(position, blockData, true);
     }
 
     @Override
-    public void updateLighting(Block bukkitBlock) {
-        final int x = bukkitBlock.getX(), y = bukkitBlock.getY(), z = bukkitBlock.getZ();
+    public void updateLighting(final org.bukkit.World world, final int x, final int y, final int z) {
         final BlockPosition position = new BlockPosition(x, y, z);
-        final World world = ((CraftWorld) bukkitBlock.getWorld()).getHandle();
-        world.getChunkProvider().getLightEngine().a(position);
+        final World nmsWorld = ((CraftWorld) world).getHandle();
+        nmsWorld.getChunkProvider().getLightEngine().a(position);
     }
 }

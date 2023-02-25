@@ -1,5 +1,14 @@
 package me.realized.de.arenaregen.zone;
 
+import me.realized.de.arenaregen.ArenaRegen;
+import me.realized.de.arenaregen.config.Config;
+import me.realized.de.arenaregen.config.Lang;
+import me.realized.de.arenaregen.util.ChunkLoc;
+import me.realized.de.arenaregen.util.CompatUtil;
+import me.realized.duels.api.arena.Arena;
+import me.realized.duels.api.event.arena.ArenaRemoveEvent;
+import me.realized.duels.api.event.match.MatchEndEvent;
+import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -15,21 +24,12 @@ import org.bukkit.event.block.BlockFadeEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockGrowEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
+import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
-import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
 import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
-
-import me.realized.de.arenaregen.ArenaRegen;
-import me.realized.de.arenaregen.config.Config;
-import me.realized.de.arenaregen.config.Lang;
-import me.realized.de.arenaregen.util.CompatUtil;
-import me.realized.duels.api.arena.Arena;
-import me.realized.duels.api.event.arena.ArenaRemoveEvent;
-import me.realized.duels.api.event.match.MatchEndEvent;
 
 public class ZoneListener implements Listener {
 
@@ -45,29 +45,16 @@ public class ZoneListener implements Listener {
     
     @EventHandler(priority = EventPriority.LOWEST)
     public void on(final ChunkUnloadEvent event) {
-        if (!CompatUtil.isPaper() && zoneManager.getZones().stream().anyMatch(zone -> zone.isResetting() && zone.isCached(event.getChunk()))) {
-            event.setCancelled(true);
-        }
-    }
-
-    
-    @EventHandler(priority = EventPriority. HIGHEST, ignoreCancelled = true)
-    public void on(final EntitySpawnEvent event) {
-        if (config.getRemoveEntities().isEmpty()) {
-            return;
-        }
-
-        final Entity entity = event.getEntity();
-
-        if (!(entity instanceof Item) && !config.getRemoveEntities().contains(entity.getType().name().toUpperCase())) {
-            return;
-        }
-
-        for (final Zone zone : zoneManager.getZones()) {
-            if (zone.contains(event.getLocation())) {
-                zone.getSpawnedEntities().add(entity);
-                break;
+        for (final Entity entity : event.getChunk().getEntities()) {
+            if (!(entity instanceof Item) && !config.getRemoveEntities().contains(entity.getType().name().toUpperCase())) {
+                continue;
             }
+
+            entity.remove();
+        }
+
+        if (!CompatUtil.isPaper() && zoneManager.getZones().stream().anyMatch(zone -> zone.isResetting() && zone.contains(event.getChunk()))) {
+            event.setCancelled(true);
         }
     }
 
@@ -80,12 +67,19 @@ public class ZoneListener implements Listener {
         if (zone == null) {
             return;
         }
-        
-        for (final Entity entity : zone.getSpawnedEntities()) {
-            entity.remove();
+
+        for (final ChunkLoc chunkLoc : zone.getChunks()) {
+            final Chunk chunk = zone.getWorld().getChunkAt(chunkLoc.getX(), chunkLoc.getZ());
+
+            for (final Entity entity : chunk.getEntities()) {
+                if (!(entity instanceof Item) && !config.getRemoveEntities().contains(entity.getType().name().toUpperCase())) {
+                    continue;
+                }
+
+                entity.remove();
+            }
         }
-        
-        zone.getSpawnedEntities().clear();
+
         zone.reset();
     }
 
@@ -149,7 +143,7 @@ public class ZoneListener implements Listener {
             zone.track(block);
         }
 
-        if (!config.isPreventBlockMelt() || !zone.isCached(block)) {
+        if (!config.isPreventBlockMelt()) {
             return;
         }
 
@@ -175,7 +169,7 @@ public class ZoneListener implements Listener {
             zone.track(block);
         }
 
-        if (!config.isPreventBlockBurn() || !zone.isCached(block)) {
+        if (!config.isPreventBlockBurn()) {
             return;
         }
 
@@ -237,7 +231,7 @@ public class ZoneListener implements Listener {
             zone.track(block);
         }
         
-        if (!config.isPreventFireSpread() || event.getCause() != IgniteCause.SPREAD || !zone.isCached(block)) {
+        if (!config.isPreventFireSpread() || event.getCause() != IgniteCause.SPREAD) {
             return;
         }
 
