@@ -6,8 +6,8 @@ experimental:
   # If enabled, the extension will track block changes made by players during the match instead of scanning
   # the entire arena after the match to locate the block changes. While much more efficient, this method
   # is unable to detect block changes caused by other plugins. If you're using such a plugin, avoid this option!
-  # default: false
-  track-block-changes: false
+  # default: true
+  track-block-changes: true
 
 # Blocks to reset per tick.
 blocks-per-tick: 100
@@ -26,8 +26,8 @@ block-reset-handler-version: auto
 remove-dropped-items: true
 
 # Remove entities in the reset zone when the match ends.
-# default: [ENDER_CRYSTAL]
-remove-entities: [ENDER_CRYSTAL]
+# default: [ENDER_CRYSTAL, MINECART_TNT]
+remove-entities: [ENDER_CRYSTAL, MINECART_TNT]
 
 # Prevent blocks in the reset zone from burning.
 # default: true

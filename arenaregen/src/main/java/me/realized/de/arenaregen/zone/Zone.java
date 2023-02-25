@@ -6,11 +6,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
@@ -36,7 +34,6 @@ import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Entity;
 
 public class Zone {
 
@@ -64,8 +61,8 @@ public class Zone {
     @Getter
     private final Set<ChunkLoc> chunks = new HashSet<>();
 
-    @Getter
-    private final List<Entity> spawnedEntities = new ArrayList<>();
+//    @Getter
+//    private final List<Entity> spawnedEntities = new ArrayList<>();
 
     private Set<Position> changedBlocks = new HashSet<>();
 
@@ -234,8 +231,14 @@ public class Zone {
         return arena.getName();
     }
 
+    private int calculateSize() {
+        return (max.getBlockX() - min.getBlockX() + 1)
+            + (max.getBlockY() - min.getBlockY() + 1)
+            + (max.getBlockZ() - min.getBlockZ() + 1);
+    }
+
     public int getTotalBlocks() {
-        return blocks.size();
+        return config.isTrackBlockChanges() ? calculateSize() : blocks.size();
     }
 
     public World getWorld() {
